@@ -1,0 +1,182 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Microsoft/azure-pipelines-task-lib/master/tasks.schema.json",
+  "id": "a7f4c2d8-1b3e-4f9a-8c6d-5e7f9a1b2c3d",
+  "name": "AICodeReview",
+  "friendlyName": "AI Code Review",
+  "description": "Automatically review pull requests using AI-powered code analysis",
+  "helpMarkDown": "Performs AI-powered code review on pull requests and posts comments with suggestions for improvements. Supports multiple LLM providers including OpenAI, Azure OpenAI, Anthropic, and Ollama.",
+  "category": "Build",
+  "author": "Simbrella",
+  "version": {
+    "Major": 1,
+    "Minor": 0,
+    "Patch": 0
+  },
+  "instanceNameFormat": "AI Code Review for PR #$(System.PullRequest.PullRequestId)",
+  "minimumAgentVersion": "2.144.0",
+  "inputs": [
+    {
+      "name": "configPath",
+      "type": "filePath",
+      "label": "Configuration File Path",
+      "defaultValue": "config/config.yaml",
+      "required": false,
+      "helpMarkDown": "Path to the YAML configuration file. If not provided, will use environment variables."
+    },
+    {
+      "name": "llmProvider",
+      "type": "pickList",
+      "label": "LLM Provider",
+      "defaultValue": "openai",
+      "required": false,
+      "helpMarkDown": "The LLM provider to use for code review. Leave empty to use config file.",
+      "options": {
+        "openai": "OpenAI (GPT-3.5/GPT-4)",
+        "azure_openai": "Azure OpenAI",
+        "anthropic": "Anthropic (Claude)",
+        "ollama": "Ollama (Local)"
+      }
+    },
+    {
+      "name": "llmModel",
+      "type": "string",
+      "label": "Model Name",
+      "defaultValue": "",
+      "required": false,
+      "helpMarkDown": "The model to use (e.g., gpt-4, claude-3-opus). Leave empty to use config file."
+    },
+    {
+      "name": "llmApiKey",
+      "type": "string",
+      "label": "API Key",
+      "defaultValue": "",
+      "required": false,
+      "helpMarkDown": "API key for the LLM provider. Can also be set via LLM_API_KEY environment variable or in config file. Use a secret variable for security."
+    },
+    {
+      "name": "llmApiBase",
+      "type": "string",
+      "label": "API Base URL",
+      "defaultValue": "",
+      "required": false,
+      "helpMarkDown": "Base URL for the API (required for Azure OpenAI and Ollama). Leave empty to use config file."
+    },
+    {
+      "name": "llmApiVersion",
+      "type": "string",
+      "label": "API Version",
+      "defaultValue": "",
+      "required": false,
+      "helpMarkDown": "API version (for Azure OpenAI). Leave empty to use config file."
+    },
+    {
+      "name": "reviewScope",
+      "type": "multiLine",
+      "label": "Review Scope",
+      "defaultValue": "security\nperformance\ncode_quality\nbest_practices\nbugs",
+      "required": false,
+      "helpMarkDown": "Aspects to focus on during review. One per line. Options: security, performance, code_quality, best_practices, bugs, style, documentation."
+    },
+    {
+      "name": "fileExtensions",
+      "type": "multiLine",
+      "label": "File Extensions to Review",
+      "defaultValue": ".py\n.ts\n.js\n.tsx\n.jsx\n.java\n.cs\n.go\n.rb",
+      "required": false,
+      "helpMarkDown": "File extensions to include in review. One per line."
+    },
+    {
+      "name": "excludePatterns",
+      "type": "multiLine",
+      "label": "Exclude Patterns",
+      "defaultValue": "**/test_*.py\n**/*.test.ts\n**/*.spec.js\n**/node_modules/**\n**/dist/**\n**/build/**",
+      "required": false,
+      "helpMarkDown": "Glob patterns for files to exclude. One per line."
+    },
+    {
+      "name": "quickMode",
+      "type": "boolean",
+      "label": "Quick Mode",
+      "defaultValue": "false",
+      "required": false,
+      "helpMarkDown": "If enabled, only checks for critical security issues. Faster but less comprehensive."
+    },
+    {
+      "name": "postComments",
+      "type": "boolean",
+      "label": "Post Comments",
+      "defaultValue": "true",
+      "required": false,
+      "helpMarkDown": "If enabled, posts review comments to the pull request. Disable for dry-run mode."
+    },
+    {
+      "name": "postSummary",
+      "type": "boolean",
+      "label": "Post Summary",
+      "defaultValue": "true",
+      "required": false,
+      "helpMarkDown": "If enabled, posts an overall review summary comment."
+    },
+    {
+      "name": "commentStyle",
+      "type": "pickList",
+      "label": "Comment Style",
+      "defaultValue": "constructive",
+      "required": false,
+      "helpMarkDown": "Style of review comments.",
+      "options": {
+        "constructive": "Constructive (Friendly and helpful)",
+        "direct": "Direct (Straightforward)",
+        "detailed": "Detailed (Comprehensive explanations)"
+      }
+    },
+    {
+      "name": "maxIssuesPerFile",
+      "type": "string",
+      "label": "Max Issues Per File",
+      "defaultValue": "10",
+      "required": false,
+      "helpMarkDown": "Maximum number of issues to report per file. Use 0 for unlimited."
+    },
+    {
+      "name": "pythonVersion",
+      "type": "string",
+      "label": "Python Version",
+      "defaultValue": "3.8",
+      "required": false,
+      "helpMarkDown": "Python version to use (e.g., 3.8, 3.9, 3.10, 3.11)."
+    },
+    {
+      "name": "logLevel",
+      "type": "pickList",
+      "label": "Log Level",
+      "defaultValue": "INFO",
+      "required": false,
+      "helpMarkDown": "Logging verbosity level.",
+      "options": {
+        "DEBUG": "DEBUG (Most verbose)",
+        "INFO": "INFO (Standard)",
+        "WARNING": "WARNING (Only warnings and errors)",
+        "ERROR": "ERROR (Only errors)"
+      }
+    }
+  ],
+  "execution": {
+    "Node16": {
+      "target": "dist/index.js",
+      "argumentFormat": ""
+    }
+  },
+  "restrictions": {
+    "commands": {
+      "mode": "restricted"
+    },
+    "settableVariables": {
+      "allowed": [
+        "AI_REVIEW_SUMMARY",
+        "AI_REVIEW_ISSUE_COUNT",
+        "AI_REVIEW_CRITICAL_COUNT"
+      ]
+    }
+  }
+}

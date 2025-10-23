@@ -1,0 +1,177 @@
+# Azure Pipelines template for AI Code Review
+# 
+# Usage in azure-pipelines.yml:
+#   trigger: none  # Only run on PR
+#   pr:
+#     branches:
+#       include:
+#         - main
+#         - develop
+#   
+#   extends:
+#     template: pipelines/ai-code-review-template.yml
+#     parameters:
+#       llmProvider: 'azure_openai'
+#       llmModel: 'gpt-4'
+
+parameters:
+  # LLM Configuration
+  - name: llmProvider
+    type: string
+    default: 'openai'
+    values:
+      - openai
+      - azure_openai
+      - anthropic
+      - ollama
+
+  - name: llmModel
+    type: string
+    default: 'gpt-4'
+
+  - name: llmApiKey
+    type: string
+    default: ''
+
+  - name: llmApiBase
+    type: string
+    default: ''
+
+  - name: llmApiVersion
+    type: string
+    default: ''
+
+  # Review Configuration
+  - name: reviewScope
+    type: string
+    default: |
+      security
+      performance
+      code_quality
+      best_practices
+      bugs
+
+  - name: fileExtensions
+    type: string
+    default: |
+      .py
+      .ts
+      .js
+      .tsx
+      .jsx
+      .java
+      .cs
+      .go
+      .rb
+
+  - name: excludePatterns
+    type: string
+    default: |
+      **/test_*.py
+      **/*.test.ts
+      **/*.spec.js
+      **/node_modules/**
+      **/dist/**
+      **/build/**
+
+  - name: quickMode
+    type: boolean
+    default: false
+
+  - name: postComments
+    type: boolean
+    default: true
+
+  - name: postSummary
+    type: boolean
+    default: true
+
+  - name: commentStyle
+    type: string
+    default: 'constructive'
+    values:
+      - constructive
+      - direct
+      - detailed
+
+  - name: maxIssuesPerFile
+    type: number
+    default: 10
+
+  # Runtime Configuration
+  - name: pythonVersion
+    type: string
+    default: '3.10'
+
+  - name: logLevel
+    type: string
+    default: 'INFO'
+    values:
+      - DEBUG
+      - INFO
+      - WARNING
+      - ERROR
+
+  # Advanced
+  - name: configPath
+    type: string
+    default: ''
+
+  - name: failOnCriticalIssues
+    type: boolean
+    default: false
+
+  - name: vmImage
+    type: string
+    default: 'ubuntu-latest'
+
+stages:
+  - stage: AICodeReview
+    displayName: 'AI Code Review'
+    jobs:
+      - job: ReviewPR
+        displayName: 'Review Pull Request'
+        pool:
+          vmImage: ${{ parameters.vmImage }}
+        
+        steps:
+          - checkout: self
+            fetchDepth: 0
+            persistCredentials: true
+          
+          - task: UsePythonVersion@0
+            displayName: 'Use Python ${{ parameters.pythonVersion }}'
+            inputs:
+              versionSpec: ${{ parameters.pythonVersion }}
+              addToPath: true
+          
+          - task: AICodeReview@1
+            displayName: 'AI Code Review'
+            inputs:
+              configPath: ${{ parameters.configPath }}
+              llmProvider: ${{ parameters.llmProvider }}
+              llmModel: ${{ parameters.llmModel }}
+              llmApiKey: ${{ parameters.llmApiKey }}
+              llmApiBase: ${{ parameters.llmApiBase }}
+              llmApiVersion: ${{ parameters.llmApiVersion }}
+              reviewScope: ${{ parameters.reviewScope }}
+              fileExtensions: ${{ parameters.fileExtensions }}
+              excludePatterns: ${{ parameters.excludePatterns }}
+              quickMode: ${{ parameters.quickMode }}
+              postComments: ${{ parameters.postComments }}
+              postSummary: ${{ parameters.postSummary }}
+              commentStyle: ${{ parameters.commentStyle }}
+              maxIssuesPerFile: ${{ parameters.maxIssuesPerFile }}
+              pythonVersion: ${{ parameters.pythonVersion }}
+              logLevel: ${{ parameters.logLevel }}
+            env:
+              SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+              FAIL_ON_CRITICAL_ISSUES: ${{ parameters.failOnCriticalIssues }}
+          
+          - task: PublishBuildArtifacts@1
+            displayName: 'Publish Review Results'
+            condition: always()
+            inputs:
+              PathtoPublish: '$(System.DefaultWorkingDirectory)/review-results.json'
+              ArtifactName: 'ai-review-results'
+            continueOnError: true

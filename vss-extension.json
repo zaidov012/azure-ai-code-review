@@ -1,0 +1,94 @@
+{
+  "manifestVersion": 1,
+  "id": "ai-code-review-extension",
+  "name": "AI Code Review",
+  "version": "1.0.3",
+  "publisher": "AsifZaidov",
+  "targets": [
+    {
+      "id": "Microsoft.VisualStudio.Services"
+    }
+  ],
+  "description": "Automatically review pull requests using AI-powered code analysis with support for OpenAI, Azure OpenAI, Anthropic, and local LLMs.",
+  "categories": [
+    "Azure Pipelines"
+  ],
+  "tags": [
+    "build",
+    "release",
+    "code-review",
+    "ai",
+    "pull-request",
+    "openai",
+    "azure-openai",
+    "anthropic",
+    "code-quality",
+    "security"
+  ],
+  "icons": {
+    "default": "images/extension-icon.png"
+  },
+  "content": {
+    "details": {
+      "path": "overview.md"
+    },
+    "license": {
+      "path": "LICENSE"
+    }
+  },
+  "links": {
+    "getstarted": {
+      "uri": "https://github.com/zaidov012/azure-ai-code-review"
+    },
+    "support": {
+      "uri": "https://github.com/zaidov012/azure-ai-code-review/issues"
+    },
+    "repository": {
+      "uri": "https://github.com/zaidov012/azure-ai-code-review"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "uri": "https://github.com/zaidov012/azure-ai-code-review"
+  },
+  "branding": {
+    "color": "rgb(34, 34, 34)",
+    "theme": "dark"
+  },
+  "files": [
+    {
+      "path": "task"
+    },
+    {
+      "path": "src"
+    },
+    {
+      "path": "scripts"
+    },
+    {
+      "path": "pipelines"
+    },
+    {
+      "path": "requirements.txt"
+    },
+    {
+      "path": "config.example.yaml"
+    }
+  ],
+  "contributions": [
+    {
+      "id": "ai-code-review-task",
+      "type": "ms.vss-distributed-task.task",
+      "targets": [
+        "ms.vss-distributed-task.tasks"
+      ],
+      "properties": {
+        "name": "task"
+      }
+    }
+  ],
+  "scopes": [
+    "vso.code_write",
+    "vso.build_execute"
+  ]
+}

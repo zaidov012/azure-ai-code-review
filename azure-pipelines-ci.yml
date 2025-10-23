@@ -1,0 +1,197 @@
+# Azure Pipelines CI/CD Configuration
+
+trigger:
+  branches:
+    include:
+      - main
+      - develop
+  tags:
+    include:
+      - v*
+
+pr:
+  branches:
+    include:
+      - '*'
+
+variables:
+  pythonVersion: '3.10'
+  nodeVersion: '18.x'
+
+stages:
+  - stage: Test
+    displayName: 'Run Tests'
+    jobs:
+      - job: TestPython
+        displayName: 'Python Tests'
+        strategy:
+          matrix:
+            Python38:
+              python.version: '3.8'
+            Python39:
+              python.version: '3.9'
+            Python310:
+              python.version: '3.10'
+            Python311:
+              python.version: '3.11'
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - task: UsePythonVersion@0
+            inputs:
+              versionSpec: '$(python.version)'
+            displayName: 'Use Python $(python.version)'
+          
+          - script: |
+              python -m pip install --upgrade pip
+              pip install -r requirements.txt
+            displayName: 'Install dependencies'
+          
+          - script: |
+              python scripts/run_tests.py --python --coverage --verbose
+            displayName: 'Run Python tests'
+          
+          - task: PublishTestResults@2
+            condition: succeededOrFailed()
+            inputs:
+              testResultsFormat: 'JUnit'
+              testResultsFiles: '**/test-*.xml'
+              failTaskOnFailedTests: true
+            displayName: 'Publish test results'
+          
+          - task: PublishCodeCoverageResults@1
+            inputs:
+              codeCoverageTool: 'Cobertura'
+              summaryFileLocation: '$(System.DefaultWorkingDirectory)/coverage/coverage.xml'
+            displayName: 'Publish coverage'
+      
+      - job: TestTypeScript
+        displayName: 'TypeScript Tests'
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - task: NodeTool@0
+            inputs:
+              versionSpec: '$(nodeVersion)'
+            displayName: 'Install Node.js'
+          
+          - script: |
+              cd task
+              npm ci
+            displayName: 'Install dependencies'
+          
+          - script: |
+              cd task
+              npm test
+            displayName: 'Run tests'
+          
+          - script: |
+              cd task
+              npm run build
+            displayName: 'Build TypeScript'
+      
+      - job: IntegrationTests
+        displayName: 'Integration Tests'
+        dependsOn:
+          - TestPython
+          - TestTypeScript
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - task: UsePythonVersion@0
+            inputs:
+              versionSpec: '$(pythonVersion)'
+            displayName: 'Use Python $(pythonVersion)'
+          
+          - script: |
+              python -m pip install --upgrade pip
+              pip install -r requirements.txt
+            displayName: 'Install dependencies'
+          
+          - script: |
+              python scripts/run_tests.py --markers integration --coverage
+            displayName: 'Run integration tests'
+            env:
+              TESTING: 'true'
+
+  - stage: Build
+    displayName: 'Build Extension'
+    dependsOn: Test
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+    jobs:
+      - job: BuildExtension
+        displayName: 'Build VSIX Package'
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - task: UsePythonVersion@0
+            inputs:
+              versionSpec: '$(pythonVersion)'
+            displayName: 'Use Python $(pythonVersion)'
+          
+          - task: NodeTool@0
+            inputs:
+              versionSpec: '$(nodeVersion)'
+            displayName: 'Install Node.js'
+          
+          - script: |
+              python -m pip install --upgrade pip
+              pip install build wheel setuptools
+            displayName: 'Install Python build tools'
+          
+          - script: |
+              python -m build
+            displayName: 'Build Python package'
+          
+          - script: |
+              cd task
+              npm ci
+              npm run build
+            displayName: 'Build TypeScript task'
+          
+          - script: |
+              npm install -g tfx-cli
+            displayName: 'Install TFX CLI'
+          
+          - script: |
+              tfx extension create --manifest-globs vss-extension.json
+            displayName: 'Package extension'
+          
+          - task: PublishBuildArtifacts@1
+            inputs:
+              PathtoPublish: '$(Build.SourcesDirectory)'
+              ArtifactName: 'extension-package'
+              publishLocation: 'Container'
+            displayName: 'Publish artifacts'
+
+  - stage: SecurityScan
+    displayName: 'Security Scanning'
+    dependsOn: []
+    jobs:
+      - job: SecurityChecks
+        displayName: 'Run Security Scans'
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - task: UsePythonVersion@0
+            inputs:
+              versionSpec: '$(pythonVersion)'
+            displayName: 'Use Python $(pythonVersion)'
+          
+          - script: |
+              pip install bandit safety
+            displayName: 'Install security tools'
+          
+          - script: |
+              bandit -r src/ -f json -o bandit-report.json || true
+            displayName: 'Run Bandit'
+          
+          - script: |
+              safety check --json > safety-report.json || true
+            displayName: 'Run Safety check'
+          
+          - task: PublishBuildArtifacts@1
+            inputs:
+              PathtoPublish: '$(Build.SourcesDirectory)'
+              ArtifactName: 'security-reports'
+            displayName: 'Publish security reports'

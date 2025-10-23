@@ -1,0 +1,122 @@
+# Example Azure Pipeline with AI Code Review
+#
+# This pipeline runs AI code review on pull requests
+
+trigger: none  # Don't run on push
+
+# Run on pull requests targeting main or develop
+pr:
+  branches:
+    include:
+      - main
+      - develop
+  paths:
+    exclude:
+      - docs/**
+      - '*.md'
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  # Set these as secret variables in your pipeline
+  - group: 'AI-Review-Secrets'  # Contains LLM_API_KEY, etc.
+
+stages:
+  - stage: Build
+    displayName: 'Build and Test'
+    jobs:
+      - job: BuildJob
+        displayName: 'Build Application'
+        steps:
+          - checkout: self
+          
+          - task: UsePythonVersion@0
+            displayName: 'Use Python 3.10'
+            inputs:
+              versionSpec: '3.10'
+          
+          - script: |
+              python -m pip install --upgrade pip
+              pip install -r requirements.txt
+            displayName: 'Install dependencies'
+          
+          - script: |
+              python -m pytest tests/ --junitxml=test-results.xml
+            displayName: 'Run tests'
+            continueOnError: true
+          
+          - task: PublishTestResults@2
+            displayName: 'Publish test results'
+            inputs:
+              testResultsFiles: 'test-results.xml'
+              testRunTitle: 'Python Tests'
+
+  - stage: AIReview
+    displayName: 'AI Code Review'
+    dependsOn: Build
+    condition: succeeded()
+    jobs:
+      - job: ReviewJob
+        displayName: 'Review Pull Request with AI'
+        steps:
+          - checkout: self
+            fetchDepth: 0
+            persistCredentials: true
+          
+          - task: UsePythonVersion@0
+            displayName: 'Use Python 3.10'
+            inputs:
+              versionSpec: '3.10'
+          
+          - task: AICodeReview@1
+            displayName: 'AI Code Review'
+            inputs:
+              # LLM Configuration (from config file)
+              configPath: 'config/config.yaml'
+              
+              # Or configure inline (overrides config file)
+              llmProvider: 'azure_openai'
+              llmModel: 'gpt-4'
+              llmApiKey: '$(LLM_API_KEY)'  # From secret variable
+              llmApiBase: '$(LLM_API_BASE)'  # From variable group
+              llmApiVersion: '2024-02-15-preview'
+              
+              # Review settings
+              reviewScope: |
+                security
+                performance
+                code_quality
+                best_practices
+                bugs
+              
+              fileExtensions: |
+                .py
+                .ts
+                .js
+                .tsx
+                .jsx
+              
+              excludePatterns: |
+                **/test_*.py
+                **/*.test.ts
+                **/*.spec.js
+                **/node_modules/**
+                **/dist/**
+              
+              quickMode: false
+              postComments: true
+              postSummary: true
+              commentStyle: 'constructive'
+              maxIssuesPerFile: 10
+              logLevel: 'INFO'
+            env:
+              SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+              FAIL_ON_CRITICAL_ISSUES: 'false'
+          
+          - script: |
+              echo "AI Review completed"
+              echo "Issues found: $(AI_REVIEW_ISSUE_COUNT)"
+              echo "Critical issues: $(AI_REVIEW_CRITICAL_COUNT)"
+            displayName: 'Display review summary'
+            condition: always()

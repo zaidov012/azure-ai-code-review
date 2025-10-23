@@ -1,0 +1,144 @@
+# ============================================================================
+# Azure DevOps AI PR Review Extension - Configuration
+# ============================================================================
+# This file contains all configuration options for the PR review extension.
+# Copy this file to 'config.yaml' and update with your values.
+# ============================================================================
+
+# ----------------------------------------------------------------------------
+# LLM Configuration
+# ----------------------------------------------------------------------------
+# Configure the AI model that will review your pull requests
+llm:
+  # Provider: openai, azure_openai, anthropic, ollama, custom
+  provider: "openai"
+  
+  # Model name (examples: gpt-4, gpt-4-turbo, claude-3-opus-20240229, llama2)
+  model: "gpt-4-turbo"
+  
+  # API Key (can also be set via LLM_API_KEY environment variable)
+  # Leave empty to use environment variable
+  api_key: ""
+  
+  # API Base URL (required for Azure OpenAI and custom endpoints)
+  # Example for Azure OpenAI: https://your-resource.openai.azure.com/
+  # Example for Ollama: http://localhost:11434
+  api_base: ""
+  
+  # API Version (required for Azure OpenAI, e.g., "2024-02-15-preview")
+  api_version: ""
+  
+  # Temperature (0.0 = deterministic, 1.0 = creative)
+  # Lower values recommended for code review (0.2-0.4)
+  temperature: 0.3
+  
+  # Maximum tokens in response
+  max_tokens: 4000
+  
+  # Request timeout in seconds
+  timeout: 60
+  
+  # Custom headers (optional, for custom API endpoints)
+  custom_headers: {}
+    # Authorization: "Bearer token"
+    # X-Custom-Header: "value"
+
+# ----------------------------------------------------------------------------
+# Azure DevOps Configuration
+# ----------------------------------------------------------------------------
+# Configure connection to your on-premise Azure DevOps instance
+azure_devops:
+  # Full URL to your Azure DevOps organization
+  # Example: https://dev.azure.com/yourorg
+  # Example (on-prem): https://tfs.company.com/DefaultCollection
+  organization_url: "https://dev.azure.com/yourorg"
+  
+  # Project name
+  project: "YourProject"
+  
+  # Repository name
+  repository: "YourRepository"
+  
+  # Personal Access Token (PAT)
+  # Can also be set via AZDO_PERSONAL_ACCESS_TOKEN environment variable
+  # Required scopes: Code (Read & Write), Pull Request Threads (Read & Write)
+  pat_token: ""
+  
+  # Verify SSL certificates (set to false for self-signed certs in on-prem)
+  verify_ssl: true
+  
+  # Request timeout in seconds
+  timeout: 30
+
+# ----------------------------------------------------------------------------
+# Review Configuration
+# ----------------------------------------------------------------------------
+# Configure how the AI reviews pull requests
+review:
+  # What aspects to review
+  # Options: code_quality, security, performance, best_practices, bugs,
+  #          documentation, testing, architecture
+  review_scope:
+    - "code_quality"
+    - "security"
+    - "performance"
+    - "best_practices"
+    - "bugs"
+  
+  # File extensions to review (empty list = review all files)
+  file_extensions:
+    - ".py"
+    - ".js"
+    - ".ts"
+    - ".tsx"
+    - ".java"
+    - ".cs"
+    - ".go"
+    - ".rb"
+    - ".php"
+    - ".cpp"
+    - ".c"
+    - ".h"
+  
+  # Patterns to exclude from review (glob patterns)
+  exclude_patterns:
+    - "*/tests/*"
+    - "*/test/*"
+    - "*/__tests__/*"
+    - "*.min.js"
+    - "*.min.css"
+    - "package-lock.json"
+    - "yarn.lock"
+    - "poetry.lock"
+    - "*.lock"
+    - "dist/*"
+    - "build/*"
+    - "node_modules/*"
+  
+  # Maximum number of files to review in a single PR
+  # Large PRs will be partially reviewed with a warning
+  max_files_per_review: 50
+  
+  # Maximum diff size in KB per file
+  # Files larger than this will be skipped
+  max_diff_size_kb: 500
+  
+  # Comment style: constructive, concise, detailed
+  # - constructive: Friendly, helpful tone with suggestions
+  # - concise: Brief, to-the-point comments
+  # - detailed: Comprehensive explanations with examples
+  comment_style: "constructive"
+  
+  # Severity levels for issues
+  # Comments will be categorized by severity
+  severity_levels:
+    - "critical"   # Security vulnerabilities, critical bugs
+    - "major"      # Significant issues affecting functionality
+    - "minor"      # Code quality, minor bugs
+    - "suggestion" # Improvements, best practices
+
+# ----------------------------------------------------------------------------
+# Logging Configuration
+# ----------------------------------------------------------------------------
+# Log level: DEBUG, INFO, WARNING, ERROR, CRITICAL
+log_level: "INFO"
