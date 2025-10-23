@@ -37,6 +37,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r task/requirements.txt
         pip install -e ".[dev]"
+        pip install types-PyYAML types-requests
     
     - name: Run linters
       run: |
@@ -46,8 +47,8 @@ jobs:
     
     - name: Run type checking
       run: |
-        cd task
-        python -m mypy ./ --ignore-missing-imports
+        cd task/src_python
+        python -m mypy src/ --ignore-missing-imports
     
     - name: Run unit tests
       run: |
