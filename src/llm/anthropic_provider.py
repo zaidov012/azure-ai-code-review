@@ -1,11 +1,11 @@
 """Anthropic (Claude) provider implementation."""
 
-from typing import Optional, List
+from typing import Optional, List, Any, Type
 
 try:
     from anthropic import Anthropic
 except ImportError:
-    Anthropic = None
+    Anthropic = None  # type: ignore[assignment,misc]
 
 from ..config.config import LLMConfig
 from ..utils.logger import setup_logger
@@ -47,7 +47,7 @@ class AnthropicProvider(LLMProvider):
         logger.info(f"Initialized Anthropic provider with model: {self.model}")
 
     def generate_completion(
-        self, prompt: str, system_message: Optional[str] = None, **kwargs
+        self, prompt: str, system_message: Optional[str] = None, **kwargs: Any
     ) -> LLMResponse:
         """
         Generate completion using Anthropic API.

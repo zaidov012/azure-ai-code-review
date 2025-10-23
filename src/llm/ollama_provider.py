@@ -1,6 +1,6 @@
 """Ollama provider implementation for local LLM hosting."""
 
-from typing import Optional, List
+from typing import Optional, List, Any
 import requests
 
 from ..config.config import LLMConfig
@@ -33,7 +33,7 @@ class OllamaProvider(LLMProvider):
         )
 
     def generate_completion(
-        self, prompt: str, system_message: Optional[str] = None, **kwargs
+        self, prompt: str, system_message: Optional[str] = None, **kwargs: Any
     ) -> LLMResponse:
         """
         Generate completion using Ollama API.

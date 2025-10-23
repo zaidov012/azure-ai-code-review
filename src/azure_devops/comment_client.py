@@ -205,7 +205,7 @@ class CommentClient:
         Returns:
             Dictionary with success count, failure count, and errors
         """
-        results = {"total": len(comments), "success": 0, "failed": 0, "errors": []}
+        results: Dict[str, Any] = {"total": len(comments), "success": 0, "failed": 0, "errors": []}
 
         logger.info(f"Posting {len(comments)} review comments to PR #{pr_id}")
 
@@ -220,7 +220,7 @@ class CommentClient:
                 error_msg = (
                     f"Failed to post comment at {comment.file_path}:{comment.line_number}: {str(e)}"
                 )
-                results["errors"].append(error_msg)
+                results["errors"].append(error_msg)  # type: ignore[union-attr]
                 logger.error(error_msg)
 
         logger.info(

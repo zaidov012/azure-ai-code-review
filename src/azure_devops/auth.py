@@ -2,7 +2,7 @@
 
 import base64
 import requests
-from typing import Optional
+from typing import Optional, Any
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
@@ -145,11 +145,11 @@ class AzureDevOpsAuth:
             logger.error(f"Failed to connect to Azure DevOps: {e}")
             return False
 
-    def __enter__(self):
+    def __enter__(self) -> "AzureDevOpsAuth":
         """Context manager entry."""
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
         """Context manager exit."""
         self.close()
 

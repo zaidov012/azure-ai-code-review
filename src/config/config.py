@@ -31,7 +31,7 @@ class LLMConfig:
     timeout: int = 60
     custom_headers: Dict[str, str] = field(default_factory=dict)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Validate and convert provider string to enum."""
         if isinstance(self.provider, str):
             self.provider = LLMProvider(self.provider.lower())
@@ -48,7 +48,7 @@ class AzureDevOpsConfig:
     verify_ssl: bool = True
     timeout: int = 30
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Load PAT token from environment if not provided."""
         if not self.pat_token:
             self.pat_token = os.environ.get("AZDO_PERSONAL_ACCESS_TOKEN")

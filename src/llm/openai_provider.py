@@ -1,12 +1,12 @@
 """OpenAI provider implementation."""
 
-from typing import Optional, List
+from typing import Optional, List, Any, Type
 
 try:
     from openai import OpenAI
-    import tiktoken
+    import tiktoken  # type: ignore[import-not-found]
 except ImportError:
-    OpenAI = None
+    OpenAI = None  # type: ignore[assignment,misc]
     tiktoken = None
 
 from ..config.config import LLMConfig
@@ -18,6 +18,8 @@ logger = setup_logger(__name__)
 
 class OpenAIProvider(LLMProvider):
     """OpenAI API provider implementation."""
+
+    encoding: Any  # tiktoken encoding object or None
 
     def __init__(self, config: LLMConfig):
         """
@@ -46,16 +48,22 @@ class OpenAIProvider(LLMProvider):
 
         # Initialize tokenizer for token counting
         try:
-            self.encoding = tiktoken.encoding_for_model(self.model)
+            if tiktoken is not None:
+                self.encoding = tiktoken.encoding_for_model(self.model)
+            else:
+                self.encoding = None
         except KeyError:
             # Fallback to cl100k_base for unknown models
             logger.warning(f"Unknown model {self.model}, using cl100k_base encoding")
-            self.encoding = tiktoken.get_encoding("cl100k_base")
+            if tiktoken is not None:
+                self.encoding = tiktoken.get_encoding("cl100k_base")
+            else:
+                self.encoding = None
 
         logger.info(f"Initialized OpenAI provider with model: {self.model}")
 
     def generate_completion(
-        self, prompt: str, system_message: Optional[str] = None, **kwargs
+        self, prompt: str, system_message: Optional[str] = None, **kwargs: Any
     ) -> LLMResponse:
         """
         Generate completion using OpenAI API.
@@ -131,8 +139,12 @@ class OpenAIProvider(LLMProvider):
             Number of tokens
         """
         try:
-            tokens = self.encoding.encode(text)
-            return len(tokens)
+            if self.encoding is not None:
+                tokens = self.encoding.encode(text)
+                return len(tokens)
+            else:
+                # Fallback: rough estimate (1 token ≈ 4 characters)
+                return len(text) // 4
         except Exception as e:
             logger.warning(f"Error counting tokens: {e}")
             # Fallback: rough estimate (1 token ≈ 4 characters)
@@ -169,7 +181,7 @@ class OpenAIProvider(LLMProvider):
 
         return errors
 
-    def close(self):
+    def close(self) -> None:
         """Close OpenAI client."""
         if hasattr(self, "client"):
             self.client.close()

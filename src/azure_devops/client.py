@@ -90,22 +90,22 @@ class AzureDevOpsClient:
         changes = self.pr_client.get_pull_request_changes(pr_id)
         threads = self.pr_client.get_pull_request_threads(pr_id)
 
-        context = {
+        context: Dict[str, Any] = {
             "pull_request": pr,
             "file_changes": changes,
             "comment_threads": threads,
             "stats": {
                 "total_files": len(changes),
-                "additions": sum(f.additions for f in changes),
-                "deletions": sum(f.deletions for f in changes),
+                "additions": int(sum(f.additions for f in changes)),
+                "deletions": int(sum(f.deletions for f in changes)),
                 "existing_threads": len(threads),
             },
         }
 
         logger.info(
-            f"PR context: {context['stats']['total_files']} files, "
-            f"+{context['stats']['additions']}/-{context['stats']['deletions']} lines, "
-            f"{context['stats']['existing_threads']} existing threads"
+            f"PR context: {context['stats']['total_files']} files, "  # type: ignore[index]
+            f"+{context['stats']['additions']}/-{context['stats']['deletions']} lines, "  # type: ignore[index]
+            f"{context['stats']['existing_threads']} existing threads"  # type: ignore[index]
         )
 
         return context
@@ -207,11 +207,11 @@ class AzureDevOpsClient:
         self.auth.close()
         logger.info("Closed Azure DevOps client")
 
-    def __enter__(self):
+    def __enter__(self) -> "AzureDevOpsClient":
         """Context manager entry."""
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
         """Context manager exit."""
         self.close()
 

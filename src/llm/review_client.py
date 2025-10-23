@@ -221,8 +221,8 @@ class LLMReviewClient:
         Returns:
             Statistics dictionary
         """
-        by_severity = {}
-        by_category = {}
+        by_severity: Dict[str, int] = {}
+        by_category: Dict[str, int] = {}
         files = set()
 
         for comment in comments:
@@ -244,16 +244,16 @@ class LLMReviewClient:
             "by_category": by_category,
         }
 
-    def close(self):
+    def close(self) -> None:
         """Close LLM provider connection."""
         if self.provider:
             self.provider.close()
 
-    def __enter__(self):
+    def __enter__(self) -> "LLMReviewClient":
         """Context manager entry."""
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
         """Context manager exit."""
         self.close()
 

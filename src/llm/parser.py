@@ -29,7 +29,7 @@ class ResponseParser:
         matches = re.findall(json_block_pattern, text, re.DOTALL)
 
         if matches:
-            return matches[0]
+            return str(matches[0])
 
         # Try to find raw JSON array
         array_pattern = r"\[\s*\{.*?\}\s*\]"
@@ -37,7 +37,7 @@ class ResponseParser:
 
         if matches:
             # Return the longest match (most likely the complete array)
-            return max(matches, key=len)
+            return str(max(matches, key=len))
 
         # Check if the entire text is JSON
         text = text.strip()
@@ -58,7 +58,7 @@ class ResponseParser:
         Returns:
             List of ReviewComment objects
         """
-        comments = []
+        comments: List[ReviewComment] = []
 
         # Extract JSON from response
         json_str = ResponseParser.extract_json(response_text)

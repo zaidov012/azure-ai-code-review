@@ -1,7 +1,7 @@
 """Pull request operations for Azure DevOps."""
 
 import requests
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 
 from ..config.config import AzureDevOpsConfig
 from ..utils.logger import setup_logger
@@ -176,7 +176,7 @@ class PullRequestClient:
             response = session.get(source_url, timeout=self.config.timeout)
 
             if response.status_code == 200:
-                source_content = response.text
+                source_content: str = response.text
                 logger.debug(f"Retrieved content for {file_path}")
                 return source_content
             else:
@@ -245,7 +245,7 @@ class PullRequestClient:
         Raises:
             requests.RequestException: On API errors
         """
-        params = {
+        params: Dict[str, Any] = {
             "api-version": self.api_version,
             "searchCriteria.status": status,
             "$top": top,

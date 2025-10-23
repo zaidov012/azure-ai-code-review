@@ -1,7 +1,7 @@
 """Base abstract interface for LLM providers."""
 
 from abc import ABC, abstractmethod
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Type
 from dataclasses import dataclass
 
 from ..config.config import LLMConfig
@@ -62,7 +62,7 @@ class LLMProvider(ABC):
 
     @abstractmethod
     def generate_completion(
-        self, prompt: str, system_message: Optional[str] = None, **kwargs
+        self, prompt: str, system_message: Optional[str] = None, **kwargs: Any
     ) -> LLMResponse:
         """
         Generate completion from LLM.
@@ -171,15 +171,15 @@ class LLMProvider(ABC):
 
         return prompt
 
-    def __enter__(self):
+    def __enter__(self) -> "LLMProvider":
         """Context manager entry."""
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
         """Context manager exit."""
         self.close()
 
-    def close(self):
+    def close(self) -> None:
         """
         Close connections and cleanup resources.
         Subclasses can override if needed.
@@ -190,10 +190,10 @@ class LLMProvider(ABC):
 class LLMProviderFactory:
     """Factory for creating LLM provider instances."""
 
-    _providers: Dict[str, type] = {}
+    _providers: Dict[str, Type[LLMProvider]] = {}
 
     @classmethod
-    def register(cls, provider_name: str, provider_class: type):
+    def register(cls, provider_name: str, provider_class: Type[LLMProvider]) -> None:
         """
         Register a provider class.
 
