@@ -10,7 +10,7 @@
   "version": {
     "Major": 1,
     "Minor": 0,
-    "Patch": 10
+    "Patch": 11
   },
   "instanceNameFormat": "AI Code Review for PR #$(System.PullRequest.PullRequestId)",
   "minimumAgentVersion": "2.144.0",

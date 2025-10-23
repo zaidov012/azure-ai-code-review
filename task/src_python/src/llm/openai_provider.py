@@ -62,6 +62,17 @@ class OpenAIProvider(LLMProvider):
 
         logger.info(f"Initialized OpenAI provider with model: {self.model}")
 
+    def _is_reasoning_model(self) -> bool:
+        """
+        Check if the model is a reasoning model (GPT-5, o1, etc.).
+        These models don't accept temperature and max_tokens parameters.
+
+        Returns:
+            True if it's a reasoning model
+        """
+        reasoning_models = ["gpt-5", "o1-preview", "o1-mini", "o1"]
+        return any(self.model.startswith(model) for model in reasoning_models)
+
     def generate_completion(
         self, prompt: str, system_message: Optional[str] = None, **kwargs: Any
     ) -> LLMResponse:
@@ -92,9 +103,15 @@ class OpenAIProvider(LLMProvider):
         params = {
             "model": self.model,
             "messages": messages,
-            "temperature": kwargs.get("temperature", self.temperature),
-            "max_tokens": kwargs.get("max_tokens", self.max_tokens),
         }
+
+        # GPT-5 and newer models don't accept temperature and max_tokens
+        # Only add these parameters for older models
+        if not self._is_reasoning_model():
+            params["temperature"] = kwargs.get("temperature", self.temperature)
+            params["max_tokens"] = kwargs.get("max_tokens", self.max_tokens)
+        else:
+            logger.debug(f"Skipping temperature and max_tokens for reasoning model: {self.model}")
 
         # Add optional parameters
         if "response_format" in kwargs:
@@ -164,6 +181,7 @@ class OpenAIProvider(LLMProvider):
 
         # Validate model name
         valid_models = [
+            "gpt-5",
             "gpt-4",
             "gpt-4-turbo",
             "gpt-4-turbo-preview",
@@ -171,9 +189,11 @@ class OpenAIProvider(LLMProvider):
             "gpt-4-1106-preview",
             "gpt-3.5-turbo",
             "gpt-3.5-turbo-16k",
+            "o1-preview",
+            "o1-mini",
         ]
 
-        if self.model not in valid_models and not self.model.startswith("gpt-"):
+        if self.model not in valid_models and not self.model.startswith(("gpt-", "o1-")):
             logger.warning(
                 f"Model '{self.model}' not in known models list. "
                 "It may still work if it's a valid OpenAI model."

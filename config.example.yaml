@@ -13,8 +13,12 @@ llm:
   # Provider: openai, azure_openai, anthropic, ollama, custom
   provider: "openai"
   
-  # Model name (examples: gpt-4, gpt-4-turbo, claude-3-opus-20240229, llama2)
-  model: "gpt-4-turbo"
+  # Model name
+  # OpenAI: gpt-5, gpt-4-turbo, gpt-4, o1-preview, o1-mini
+  # Anthropic: claude-3-opus-20240229, claude-3-sonnet-20240229
+  # Ollama: llama2, codellama, mistral
+  # Note: GPT-5 and o1 models don't accept temperature/max_tokens parameters
+  model: "gpt-5"
   
   # API Key (can also be set via LLM_API_KEY environment variable)
   # Leave empty to use environment variable
@@ -30,9 +34,11 @@ llm:
   
   # Temperature (0.0 = deterministic, 1.0 = creative)
   # Lower values recommended for code review (0.2-0.4)
+  # Note: Ignored for GPT-5 and o1 reasoning models
   temperature: 0.3
   
   # Maximum tokens in response
+  # Note: Ignored for GPT-5 and o1 reasoning models
   max_tokens: 4000
   
   # Request timeout in seconds
