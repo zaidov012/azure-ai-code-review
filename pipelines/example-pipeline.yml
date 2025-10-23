@@ -76,11 +76,14 @@ stages:
               configPath: 'config/config.yaml'
               
               # Or configure inline (overrides config file)
-              llmProvider: 'azure_openai'
-              llmModel: 'gpt-4'
+              llmProvider: 'openai'
+              llmModel: 'gpt-5'  # Options: gpt-5, gpt-4-turbo, o1-preview, o1-mini
               llmApiKey: '$(LLM_API_KEY)'  # From secret variable
-              llmApiBase: '$(LLM_API_BASE)'  # From variable group
-              llmApiVersion: '2024-02-15-preview'
+              llmTimeout: 60  # Reasoning models automatically use min 600s (10 min)
+              # Note: GPT-5 and o1 models use extended timeout (10 min) automatically
+              # For Azure OpenAI, set llmApiBase and llmApiVersion:
+              # llmApiBase: '$(LLM_API_BASE)'
+              # llmApiVersion: '2024-02-15-preview'
               
               # Review settings
               reviewScope: |

@@ -28,7 +28,7 @@ class LLMConfig:
     api_version: Optional[str] = None
     temperature: float = 0.3
     max_tokens: int = 4000
-    timeout: int = 60
+    timeout: int = 500
     custom_headers: Dict[str, str] = field(default_factory=dict)
 
     def __post_init__(self) -> None:

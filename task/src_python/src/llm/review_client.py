@@ -9,7 +9,7 @@ from .base import LLMProviderFactory
 from .prompts import CodeReviewPrompts, detect_language
 from .parser import ResponseParser
 
-logger = setup_logger(__name__)
+logger = setup_logger(__name__, log_level="DEBUG")
 
 
 class LLMReviewClient:

@@ -65,7 +65,7 @@ class ResponseParser:
 
         if not json_str:
             logger.warning(f"No JSON found in response for {file_path}")
-            logger.debug(f"Response text: {response_text[:500]}")
+            logger.info(f"Response text: {response_text[:500]}")
             return comments
 
         try:

@@ -16,6 +16,7 @@ interface TaskInputs {
     llmApiKey?: string;
     llmApiBase?: string;
     llmApiVersion?: string;
+    llmTimeout?: string;
     reviewScope: string[];
     fileExtensions: string[];
     excludePatterns: string[];
@@ -40,6 +41,7 @@ function getInputs(): TaskInputs {
     const llmApiKey = tl.getInput('llmApiKey', false);
     const llmApiBase = tl.getInput('llmApiBase', false);
     const llmApiVersion = tl.getInput('llmApiVersion', false);
+    const llmTimeout = tl.getInput('llmTimeout', false);
     
     // Review Configuration
     const reviewScopeInput = tl.getInput('reviewScope', false) || '';
@@ -68,6 +70,7 @@ function getInputs(): TaskInputs {
         llmApiKey,
         llmApiBase,
         llmApiVersion,
+        llmTimeout,
         reviewScope,
         fileExtensions,
         excludePatterns,
@@ -172,6 +175,7 @@ function setEnvironmentVariables(inputs: TaskInputs): void {
     if (inputs.llmApiKey) process.env.LLM_API_KEY = inputs.llmApiKey;
     if (inputs.llmApiBase) process.env.LLM_API_BASE = inputs.llmApiBase;
     if (inputs.llmApiVersion) process.env.LLM_API_VERSION = inputs.llmApiVersion;
+    if (inputs.llmTimeout) process.env.LLM_TIMEOUT = inputs.llmTimeout;
     
     // Review Configuration
     if (inputs.reviewScope.length > 0) {

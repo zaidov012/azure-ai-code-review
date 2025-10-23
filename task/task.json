@@ -10,7 +10,7 @@
   "version": {
     "Major": 1,
     "Minor": 0,
-    "Patch": 11
+    "Patch": 19
   },
   "instanceNameFormat": "AI Code Review for PR #$(System.PullRequest.PullRequestId)",
   "minimumAgentVersion": "2.144.0",
@@ -68,6 +68,14 @@
       "defaultValue": "",
       "required": false,
       "helpMarkDown": "API version (for Azure OpenAI). Leave empty to use config file."
+    },
+    {
+      "name": "llmTimeout",
+      "type": "string",
+      "label": "Request Timeout (seconds)",
+      "defaultValue": "250",
+      "required": false,
+      "helpMarkDown": "Timeout in seconds for LLM API requests. Note: Reasoning models (GPT-5, o1) automatically use minimum 600s (10 minutes)."
     },
     {
       "name": "reviewScope",

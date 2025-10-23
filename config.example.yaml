@@ -42,7 +42,9 @@ llm:
   max_tokens: 4000
   
   # Request timeout in seconds
-  timeout: 60
+  # Note: For reasoning models (GPT-5, o1), timeout is automatically extended
+  # to 600s (10 minutes) minimum, as these models take longer to respond
+  timeout: 350
   
   # Custom headers (optional, for custom API endpoints)
   custom_headers: {}

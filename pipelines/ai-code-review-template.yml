@@ -11,8 +11,8 @@
 #   extends:
 #     template: pipelines/ai-code-review-template.yml
 #     parameters:
-#       llmProvider: 'azure_openai'
-#       llmModel: 'gpt-4'
+#       llmProvider: 'openai'
+#       llmModel: 'gpt-5'  # Options: gpt-5, gpt-4-turbo, o1-preview, o1-mini
 
 parameters:
   # LLM Configuration
@@ -28,6 +28,8 @@ parameters:
   - name: llmModel
     type: string
     default: 'gpt-4'
+    # Options: gpt-5, gpt-4, gpt-4-turbo, o1-preview, o1-mini, claude-3-opus, etc.
+    # Note: GPT-5 and o1 models automatically use extended timeout (10 min)
 
   - name: llmApiKey
     type: string
@@ -40,6 +42,11 @@ parameters:
   - name: llmApiVersion
     type: string
     default: ''
+
+  - name: llmTimeout
+    type: number
+    default: 60
+    # Note: Reasoning models (GPT-5, o1) automatically use minimum 600s (10 min)
 
   # Review Configuration
   - name: reviewScope
@@ -154,6 +161,7 @@ stages:
               llmApiKey: ${{ parameters.llmApiKey }}
               llmApiBase: ${{ parameters.llmApiBase }}
               llmApiVersion: ${{ parameters.llmApiVersion }}
+              llmTimeout: ${{ parameters.llmTimeout }}
               reviewScope: ${{ parameters.reviewScope }}
               fileExtensions: ${{ parameters.fileExtensions }}
               excludePatterns: ${{ parameters.excludePatterns }}
