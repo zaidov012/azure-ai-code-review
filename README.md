@@ -1,29 +1,22 @@
-# Azure DevOps AI PR Review Extension
+# Azure DevOps AI Code Review
 
-An intelligent Azure DevOps extension that leverages AI (OpenAI, Azure OpenAI, Anthropic, Ollama) to automatically review pull requests and provide insightful comments on code quality, security, performance, and best practices.
+An intelligent Azure DevOps extension that leverages AI to automatically review pull requests and provide insightful feedback on code quality, security, performance, and best practices.
 
-## 🎯 Key Features
+## ✨ Features
 
-- **Multiple LLM Providers**: OpenAI GPT-4, Azure OpenAI, Anthropic Claude, Ollama (local)
-- **Automated Reviews**: Analyzes code changes and posts structured comments to PRs
-- **Security Focused**: Detects vulnerabilities, bugs, and anti-patterns
-- **Highly Configurable**: Customize review scope, file filters, and comment styles
-- **Enterprise Ready**: Supports on-premise Azure DevOps and air-gapped environments
-- **Easy Integration**: Simple pipeline task - just add to your YAML
+- **🤖 Multiple AI Providers**: OpenAI GPT-4, Azure OpenAI, Anthropic Claude, Ollama (local)
+- **🔒 Security First**: Detects vulnerabilities, security risks, and anti-patterns
+- **⚡ Easy Integration**: Simple pipeline task configuration
+- **🎯 Smart Filtering**: Configurable file types and exclusion patterns
+- **🏢 Enterprise Ready**: Supports on-premise Azure DevOps and air-gapped environments
+- **💬 Automated Comments**: Posts structured review comments directly to PRs
 
-## 📋 Prerequisites
+## � Quick Start
 
-- Azure DevOps organization (cloud or on-premise)
-- API key for your LLM provider (OpenAI, Azure OpenAI, Anthropic, or Ollama)
-- **Authentication** (choose one):
-  - **Option A**: Build Service with `Contribute to pull requests` permission - See **[PERMISSION_SETUP.md](PERMISSION_SETUP.md)**
-  - **Option B**: Personal Access Token with `Code (Read/Write)` scope - See **[USING_PAT_TOKEN.md](USING_PAT_TOKEN.md)**
-
-## 🚀 Quick Start
-
-See **[ExtensionSetup.md](ExtensionSetup.md)** for complete installation and configuration instructions.
-
-### Basic Pipeline Example
+1. **Install the extension** from Azure DevOps Marketplace
+2. **Configure authentication** (Build Service or PAT token)
+3. **Add API key** as a secret pipeline variable
+4. **Add the task** to your PR pipeline:
 
 ```yaml
 trigger: none
@@ -42,55 +35,57 @@ steps:
       llmProvider: 'openai'
       llmModel: 'gpt-4-turbo'
       llmApiKey: $(OPENAI_API_KEY)
-      reviewScope: |
-        security
-        code_quality
-        performance
       postComments: true
     condition: eq(variables['Build.Reason'], 'PullRequest')
     env:
       SYSTEM_ACCESSTOKEN: $(System.AccessToken)
 ```
 
-## ⚙️ Configuration Options
+> 📖 **Full setup instructions**: See [Setup.md](Setup.md)
 
-### LLM Providers
+## 📋 Prerequisites
 
-| Provider | Models | Best For |
+- Azure DevOps organization (cloud or on-premise)
+- API key for your chosen LLM provider
+- Build Service permissions or Personal Access Token
+
+## ⚙️ Supported LLM Providers
+
+| Provider | Models | Use Case |
 |----------|--------|----------|
-| **OpenAI** | GPT-4 Turbo, GPT-4, GPT-3.5 | High quality, cloud-based |
-| **Azure OpenAI** | Your deployed models | Enterprise compliance |
-| **Anthropic** | Claude 3 Opus/Sonnet/Haiku | Alternative provider |
-| **Ollama** | Llama 2, Mistral, CodeLlama | Local/air-gapped setups |
+| **OpenAI** | GPT-4 Turbo, GPT-4, GPT-3.5 | High-quality cloud-based reviews |
+| **Azure OpenAI** | Your deployed models | Enterprise compliance & data residency |
+| **Anthropic** | Claude 3 Opus/Sonnet/Haiku | Alternative cloud provider |
+| **Ollama** | Llama 2, Mistral, CodeLlama | Local/air-gapped environments |
 
-### Task Input Parameters
+## 🎯 Configuration Options
 
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `llmProvider` | LLM provider (openai, azure_openai, anthropic, ollama) | - |
-| `llmModel` | Model name (e.g., gpt-4-turbo) | - |
-| `llmApiKey` | API key for the provider | - |
-| `reviewScope` | What to review (security, code_quality, performance, etc.) | All |
-| `fileExtensions` | File types to review (.py, .js, .ts, etc.) | All |
-| `excludePatterns` | Patterns to exclude (*/dist/*, *.min.js) | None |
-| `postComments` | Whether to post comments to PR | true |
-| `commentStyle` | Comment style (constructive, concise, detailed) | constructive |
+### Basic Task Inputs
 
-### Review Scope Options
+| Input | Description | Default |
+|-------|-------------|---------|
+| `llmProvider` | AI provider (openai, azure_openai, anthropic, ollama) | `openai` |
+| `llmModel` | Model name (e.g., gpt-4-turbo) | `gpt-4` |
+| `llmApiKey` | API key for the provider | Required |
+| `reviewScope` | What to review (security, code_quality, etc.) | All aspects |
+| `postComments` | Post review comments to PR | `true` |
+
+### Review Scopes
+
+Configure what the AI should focus on:
 
 - `security` - Security vulnerabilities and risks
 - `code_quality` - Code style and maintainability
 - `performance` - Performance issues and optimizations
 - `best_practices` - Language-specific best practices
 - `bugs` - Potential bugs and logic errors
-- `documentation` - Missing or incorrect docs
+- `documentation` - Missing or unclear documentation
 - `testing` - Test coverage and quality
 - `architecture` - Design patterns and structure
 
-## 📖 Configuration Examples
+### Example Configurations
 
-### Example 1: Security-Focused Review
-
+**Security-Focused Review:**
 ```yaml
 - task: AICodeReview@1
   inputs:
@@ -100,12 +95,10 @@ steps:
     reviewScope: |
       security
       bugs
-    postComments: true
     commentStyle: 'detailed'
 ```
 
-### Example 2: Full Review with Azure OpenAI
-
+**Full Review with File Filtering:**
 ```yaml
 - task: AICodeReview@1
   inputs:
@@ -113,26 +106,20 @@ steps:
     llmModel: 'gpt-4'
     llmApiKey: $(AZURE_OPENAI_KEY)
     llmApiBase: 'https://your-resource.openai.azure.com'
-    llmApiVersion: '2023-05-15'
     reviewScope: |
       security
       code_quality
       performance
-      best_practices
     fileExtensions: |
       .py
       .js
       .ts
     excludePatterns: |
       */dist/*
-      */build/*
-      *.min.js
-    postComments: true
-    commentStyle: 'constructive'
+      */node_modules/*
 ```
 
-### Example 3: Local Ollama Setup
-
+**Local Ollama Setup:**
 ```yaml
 - task: AICodeReview@1
   inputs:
@@ -142,132 +129,110 @@ steps:
     reviewScope: |
       code_quality
       bugs
-    postComments: true
 ```
 
-### Example 4: Using Configuration File
+## 📂 Project Structure
 
-Create `config.yaml` in your repo:
-```yaml
-llm:
-  provider: openai
-  model: gpt-4-turbo
-  api_key: ${OPENAI_API_KEY}
-
-review:
-  review_scope:
-    - security
-    - code_quality
-    - performance
-  file_extensions:
-    - .py
-    - .js
-    - .ts
-  exclude_patterns:
-    - '*/dist/*'
-    - '*.min.js'
+```
+azure-extension/
+├── src/                    # Python source code
+│   ├── azure_devops/       # Azure DevOps API client
+│   ├── llm/                # LLM provider implementations
+│   ├── config/             # Configuration management
+│   └── utils/              # Utilities and logging
+├── task/                   # Azure Pipelines task
+│   ├── src/                # TypeScript task implementation
+│   ├── src_python/         # Bundled Python code
+│   └── task.json           # Task manifest
+├── tests/                  # Test suite
+├── examples/               # Usage examples
+├── pipelines/              # Example pipeline templates
+└── scripts/                # Build and utility scripts
 ```
 
-Pipeline:
-```yaml
-- task: AICodeReview@1
-  inputs:
-    configPath: 'config.yaml'
-    postComments: true
+## 🧪 Testing & Validation
+
+Run the validation script to test your setup:
+
+```bash
+python validate_setup.py
+```
+
+Run the test suite:
+
+```bash
+# All tests with coverage
+python scripts/run_tests.py --all --coverage
+
+# Unit tests only
+python scripts/run_tests.py --python
 ```
 
 ## 🔒 Security Best Practices
 
-1. **Store API keys as secret variables** in Azure Pipelines
-2. **Use `$(System.AccessToken)`** for Azure DevOps authentication
-3. **Never commit** API keys or PAT tokens to source control
-4. **Use minimum permissions** for PAT tokens (Code Read/Write + PR Threads Read/Write)
-5. **Enable SSL verification** for production environments
+- ✅ Store API keys as **secret pipeline variables**
+- ✅ Use `$(System.AccessToken)` for Azure DevOps authentication
+- ✅ Never commit API keys or PAT tokens to source control
+- ✅ Use minimum required permissions for tokens
+- ✅ Enable SSL verification in production
+- ✅ Consider Ollama for complete data privacy (air-gapped)
 
 ## 🐛 Troubleshooting
 
-### Issue: Comments not posted to PR
+### Common Issues
 
-**Solutions:**
-- Ensure `SYSTEM_ACCESSTOKEN` environment variable is set: `env: SYSTEM_ACCESSTOKEN: $(System.AccessToken)`
-- Verify Build Service has **Contribute** permission on the repository
-- Check `postComments: true` is set in task inputs
+**Comments not posted to PR:**
+- Ensure `SYSTEM_ACCESSTOKEN: $(System.AccessToken)` is set
+- Verify Build Service has "Contribute to pull requests" permission
+- Check `postComments: true` in task inputs
 
-### Issue: Authentication errors
+**Authentication errors:**
+- For Build Service: Grant permissions in Project Settings → Repositories → Security
+- For PAT token: Verify token has Code (Read/Write) scope and hasn't expired
+- Wait 5 minutes after granting permissions for propagation
 
-**Solutions:**
-- Verify PAT token is valid and not expired
-- Check PAT has required scopes: Code (Read/Write) and Pull Request Threads (Read/Write)
-- **For Build Service**: See **[PERMISSION_SETUP.md](PERMISSION_SETUP.md)** for granting permissions
-  - Go to Project Settings → Repositories → Security → Grant "Contribute to pull requests" to Build Service
-- Ensure `System.AccessToken` is passed in pipeline YAML: `env: SYSTEM_ACCESSTOKEN: $(System.AccessToken)`
-
-### Issue: API rate limits or timeouts
-
-**Solutions:**
-- Reduce `max_files_per_review` (default: 50)
-- Add file filtering with `fileExtensions` and `excludePatterns`
-- Use a higher-tier API plan with your provider
-
-### Issue: Task not running on PR
-
-**Solutions:**
-- Ensure PR trigger is configured: `pr: branches: include: ['*']`
+**Task not running:**
+- Ensure PR trigger is configured in pipeline
 - Add condition: `condition: eq(variables['Build.Reason'], 'PullRequest')`
-- Check pipeline is not manually triggered (should be PR trigger)
+- Verify extension is installed in your organization
 
-## 📊 Project Structure
+**API rate limits:**
+- Reduce `maxFilesPerReview` (default: 50)
+- Add file filtering with `fileExtensions` and `excludePatterns`
+- Consider upgrading your API plan
 
-```
-azure-extension/
-├── src/                     # Python source code
-│   ├── config/             # Configuration management
-│   ├── azure_devops/       # Azure DevOps API integration
-│   ├── llm/                # LLM provider implementations
-│   └── utils/              # Utilities and logging
-├── task/                   # Azure Pipelines task
-│   ├── src/index.ts        # TypeScript task runner
-│   └── task.json           # Task manifest
-├── scripts/                # Utility scripts
-│   └── review_pr.py        # Main review orchestration
-├── tests/                  # Test suite (107+ tests)
-├── config.example.yaml     # Example configuration
-├── requirements.txt        # Python dependencies
-└── vss-extension.json      # Extension manifest
-```
+> 📖 **Detailed troubleshooting**: See [Setup.md](Setup.md#troubleshooting)
 
-## 🧪 Testing
+## 📖 Documentation
 
-```bash
-# Run all tests
-python scripts/run_tests.py --all --coverage
+- **[Setup.md](Setup.md)** - Complete installation and configuration guide
+- **[config.example.yaml](config.example.yaml)** - Example configuration file
+- **[examples/](examples/)** - Code examples and usage patterns
+- **[pipelines/](pipelines/)** - Example pipeline templates
 
-# Run only unit tests
-python scripts/run_tests.py --python
+## � Contributing
 
-# Run integration tests
-python scripts/run_tests.py --markers integration
+Contributions are welcome! Please:
 
-# Validate configuration
-python validate_setup.py
-```
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Run tests: `python scripts/run_tests.py --all`
+5. Submit a pull request
 
-## 📝 License
+## � License
 
-[Add your license]
-
-## 🤝 Contributing
-
-Contributions welcome! Please open an issue or submit a pull request.
+MIT License - See [LICENSE](LICENSE) file for details.
 
 ## 📞 Support
 
-For issues and questions:
-- Open an issue on GitHub
-- Review [ExtensionSetup.md](ExtensionSetup.md) for setup help
-- Check troubleshooting section above
+- **Issues**: [GitHub Issues](https://github.com/zaidov012/azure-ai-code-review/issues)
+- **Documentation**: [Setup Guide](Setup.md)
+- **Repository**: [github.com/zaidov012/azure-ai-code-review](https://github.com/zaidov012/azure-ai-code-review)
 
 ---
 
-**Status**: Production Ready ✅  
-**Version**: 1.0.0
+**Made with ❤️ for better code reviews**
+
+**Version**: 1.1.0 | **Status**: Production Ready ✅
+
