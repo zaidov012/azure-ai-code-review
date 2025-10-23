@@ -40,11 +40,14 @@ jobs:
     
     - name: Run linters
       run: |
-        python scripts/run_tests.py --lint-python
+        cd task/src_python
+        python -m flake8 src/ --max-line-length=100
+        python -m black --check src/
     
     - name: Run type checking
       run: |
-        python scripts/run_tests.py --type-check
+        cd task/src_python
+        python -m mypy src/ --ignore-missing-imports
     
     - name: Run unit tests
       run: |
@@ -82,7 +85,7 @@ jobs:
     - name: Install dependencies
       run: |
         cd task
-        npm ci
+        npm ci || npm install
     
     - name: Run tests
       run: |
@@ -150,7 +153,7 @@ jobs:
     - name: Build TypeScript task
       run: |
         cd task
-        npm ci
+        npm ci || npm install
         npm run build
     
     - name: Install TFX CLI

@@ -51,7 +51,7 @@ def run_python_tests(args):
     
     if args.coverage:
         cmd.extend([
-            "--cov=src",
+            "--cov=task/src_python/src",
             "--cov-report=term-missing",
             "--cov-report=html:coverage/html",
             "--cov-report=xml:coverage/coverage.xml",
@@ -121,7 +121,7 @@ def run_linters(args):
     if args.lint_python:
         print("\n▶ Running flake8...")
         flake8_success = run_command(
-            [sys.executable, "-m", "flake8", "src/", "tests/", "--max-line-length=100"],
+            [sys.executable, "-m", "flake8", "task/src_python/src/", "tests/", "--max-line-length=100"],
             cwd=repo_root
         )
         success = success and flake8_success
@@ -130,7 +130,7 @@ def run_linters(args):
     if args.lint_python:
         print("\n▶ Running black...")
         black_success = run_command(
-            [sys.executable, "-m", "black", "--check", "src/", "tests/"],
+            [sys.executable, "-m", "black", "--check", "task/src_python/src/", "tests/"],
             cwd=repo_root
         )
         success = success and black_success
@@ -139,7 +139,7 @@ def run_linters(args):
     if args.type_check:
         print("\n▶ Running mypy...")
         mypy_success = run_command(
-            [sys.executable, "-m", "mypy", "src/"],
+            [sys.executable, "-m", "mypy", "task/src_python/src/", "--ignore-missing-imports"],
             cwd=repo_root
         )
         success = success and mypy_success

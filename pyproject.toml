@@ -75,4 +75,9 @@ testpaths = ["tests"]
 python_files = "test_*.py"
 python_classes = "Test*"
 python_functions = "test_*"
-addopts = "-v --cov=src --cov-report=term-missing --cov-report=html"
+addopts = "-v --cov=task/src_python/src --cov-report=term-missing --cov-report=html:coverage/html --cov-report=xml:coverage/coverage.xml"
+markers = [
+    "integration: marks tests as integration tests",
+    "slow: marks tests as slow running",
+    "requires_api_key: marks tests as requiring real API keys"
+]

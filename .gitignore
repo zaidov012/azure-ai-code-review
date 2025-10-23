@@ -144,3 +144,7 @@ Thumbs.db
 # Azure DevOps
 .azdo/
 *.vsix
+
+# Node modules
+node_modules/
+task/node_modules/
