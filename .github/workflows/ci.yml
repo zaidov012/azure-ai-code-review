@@ -46,8 +46,7 @@ jobs:
     
     - name: Run type checking
       run: |
-        cd task/src_python
-        python -m mypy src_python/ --ignore-missing-imports
+        python -m mypy ./ --ignore-missing-imports
     
     - name: Run unit tests
       run: |
