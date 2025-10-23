@@ -173,7 +173,15 @@ stages:
               pythonVersion: ${{ parameters.pythonVersion }}
               logLevel: ${{ parameters.logLevel }}
             env:
+              # Option 1: Use Build Service (default)
+              # Requires PullRequestContribute permission - see PERMISSION_SETUP.md
               SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+              
+              # Option 2: Use Personal Access Token
+              # If you prefer to use a PAT token, comment out SYSTEM_ACCESSTOKEN above
+              # and uncomment the line below, then set AZDO_PAT_TOKEN as a secret variable
+              # AZDO_PERSONAL_ACCESS_TOKEN: $(AZDO_PAT_TOKEN)
+              
               FAIL_ON_CRITICAL_ISSUES: ${{ parameters.failOnCriticalIssues }}
           
           - task: PublishBuildArtifacts@1

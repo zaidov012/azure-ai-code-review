@@ -114,7 +114,14 @@ stages:
               maxIssuesPerFile: 10
               logLevel: 'INFO'
             env:
+              # Option 1: Use Build Service (requires PullRequestContribute permission)
+              # See PERMISSION_SETUP.md for setup instructions
               SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+              
+              # Option 2: Use Personal Access Token (recommended if Build Service permissions cannot be granted)
+              # Uncomment the line below and comment out SYSTEM_ACCESSTOKEN above
+              # AZDO_PERSONAL_ACCESS_TOKEN: $(AZDO_PAT_TOKEN)  # Set this as a secret variable in your pipeline
+              
               FAIL_ON_CRITICAL_ISSUES: 'false'
           
           - script: |

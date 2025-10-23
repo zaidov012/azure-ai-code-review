@@ -253,6 +253,8 @@ class CommentClient:
         }
 
         logger.info(f"Creating general comment on PR #{pr_id}")
+        logger.debug(f"Request URL: {url}")
+        logger.debug(f"Request payload: {payload}")
 
         try:
             session = self.auth.get_session()

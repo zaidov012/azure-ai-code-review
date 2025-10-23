@@ -15,7 +15,9 @@ An intelligent Azure DevOps extension that leverages AI (OpenAI, Azure OpenAI, A
 
 - Azure DevOps organization (cloud or on-premise)
 - API key for your LLM provider (OpenAI, Azure OpenAI, Anthropic, or Ollama)
-- Personal Access Token (PAT) with `Code (Read/Write)` and `Pull Request Threads (Read/Write)` permissions
+- **Authentication** (choose one):
+  - **Option A**: Build Service with `Contribute to pull requests` permission - See **[PERMISSION_SETUP.md](PERMISSION_SETUP.md)**
+  - **Option B**: Personal Access Token with `Code (Read/Write)` scope - See **[USING_PAT_TOKEN.md](USING_PAT_TOKEN.md)**
 
 ## 🚀 Quick Start
 
@@ -196,7 +198,9 @@ Pipeline:
 **Solutions:**
 - Verify PAT token is valid and not expired
 - Check PAT has required scopes: Code (Read/Write) and Pull Request Threads (Read/Write)
-- For Build Service: Go to Project Settings → Repositories → Security → Grant permissions
+- **For Build Service**: See **[PERMISSION_SETUP.md](PERMISSION_SETUP.md)** for granting permissions
+  - Go to Project Settings → Repositories → Security → Grant "Contribute to pull requests" to Build Service
+- Ensure `System.AccessToken` is passed in pipeline YAML: `env: SYSTEM_ACCESSTOKEN: $(System.AccessToken)`
 
 ### Issue: API rate limits or timeouts
 

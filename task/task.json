@@ -9,8 +9,8 @@
   "author": "Simbrella",
   "version": {
     "Major": 1,
-    "Minor": 0,
-    "Patch": 19
+    "Minor": 1,
+    "Patch": 0
   },
   "instanceNameFormat": "AI Code Review for PR #$(System.PullRequest.PullRequestId)",
   "minimumAgentVersion": "2.144.0",

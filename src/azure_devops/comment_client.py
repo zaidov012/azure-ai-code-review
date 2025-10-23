@@ -93,6 +93,26 @@ class CommentClient:
             logger.error(f"Error creating comment thread: {e}")
             if hasattr(e, "response") and e.response is not None:
                 logger.error(f"Response: {e.response.text}")
+                
+                # Check for permission error and provide helpful message
+                if e.response.status_code == 403:
+                    try:
+                        error_data = e.response.json()
+                        if "PullRequestContribute" in str(error_data):
+                            logger.error(
+                                "\n" + "="*80 + "\n"
+                                "PERMISSION ERROR: Build Service lacks 'PullRequestContribute' permission.\n"
+                                "\n"
+                                "To fix this issue:\n"
+                                "1. Go to Project Settings > Repositories > Security\n"
+                                "2. Find 'Build Service' account\n"
+                                "3. Set 'Contribute to pull requests' to 'Allow'\n"
+                                "\n"
+                                "See PERMISSION_SETUP.md for detailed instructions.\n"
+                                "="*80
+                            )
+                    except Exception:
+                        pass
             raise
 
     def add_comment_to_thread(
@@ -249,10 +269,13 @@ class CommentClient:
         payload = {
             "comments": [{"parentCommentId": 0, "content": content, "commentType": 1}],
             "status": 1,  # active
+            "threadContext": None,  # Explicitly set null for general comments
             "properties": {"ai_generated": {"$type": "System.String", "$value": "true"}},
         }
 
         logger.info(f"Creating general comment on PR #{pr_id}")
+        logger.debug(f"Request URL: {url}")
+        logger.debug(f"Request payload: {payload}")
 
         try:
             session = self.auth.get_session()
@@ -267,6 +290,29 @@ class CommentClient:
 
         except requests.exceptions.RequestException as e:
             logger.error(f"Error creating general comment: {e}")
+            if hasattr(e, "response") and e.response is not None:
+                logger.error(f"Response status: {e.response.status_code}")
+                logger.error(f"Response body: {e.response.text}")
+                
+                # Check for permission error and provide helpful message
+                if e.response.status_code == 403:
+                    try:
+                        error_data = e.response.json()
+                        if "PullRequestContribute" in str(error_data):
+                            logger.error(
+                                "\n" + "="*80 + "\n"
+                                "PERMISSION ERROR: Build Service lacks 'PullRequestContribute' permission.\n"
+                                "\n"
+                                "To fix this issue:\n"
+                                "1. Go to Project Settings > Repositories > Security\n"
+                                "2. Find 'Build Service' account\n"
+                                "3. Set 'Contribute to pull requests' to 'Allow'\n"
+                                "\n"
+                                "See PERMISSION_SETUP.md for detailed instructions.\n"
+                                "="*80
+                            )
+                    except Exception:
+                        pass
             raise
 
     def delete_comment_thread(self, pr_id: int, thread_id: int) -> bool:

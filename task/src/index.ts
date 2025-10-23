@@ -167,7 +167,15 @@ function setEnvironmentVariables(inputs: TaskInputs): void {
     if (orgUrl) process.env.AZDO_ORG_URL = orgUrl;
     if (project) process.env.AZDO_PROJECT = project;
     if (repository) process.env.AZDO_REPOSITORY = repository;
-    if (accessToken) process.env.AZDO_PERSONAL_ACCESS_TOKEN = accessToken;
+    
+    // Only use System.AccessToken if AZDO_PERSONAL_ACCESS_TOKEN is not already set
+    // This allows users to provide their own PAT token which takes priority
+    if (!process.env.AZDO_PERSONAL_ACCESS_TOKEN && accessToken) {
+        process.env.AZDO_PERSONAL_ACCESS_TOKEN = accessToken;
+        tl.debug('Using System.AccessToken for authentication');
+    } else if (process.env.AZDO_PERSONAL_ACCESS_TOKEN) {
+        tl.debug('Using provided PAT token for authentication');
+    }
     
     // LLM Configuration
     if (inputs.llmProvider) process.env.LLM_PROVIDER = inputs.llmProvider;
