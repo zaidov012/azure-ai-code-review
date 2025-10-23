@@ -1,6 +1,6 @@
 """Anthropic (Claude) provider implementation."""
 
-from typing import Optional, List, Any, Type
+from typing import Optional, List, Any
 
 try:
     from anthropic import Anthropic

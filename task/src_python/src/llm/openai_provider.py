@@ -1,6 +1,6 @@
 """OpenAI provider implementation."""
 
-from typing import Optional, List, Any, Type
+from typing import Optional, List, Any
 
 try:
     from openai import OpenAI
@@ -43,28 +43,28 @@ class OpenAIProvider(LLMProvider):
         # Determine if this is a reasoning model (GPT-5, o1) that needs longer timeout
         reasoning_models = ["gpt-5", "gpt-5-mini", "o1-preview", "o1-mini", "o1"]
         is_reasoning = any(config.model.startswith(model) for model in reasoning_models)
-        
+
         # Initialize OpenAI client
         # Reasoning models (GPT-5, o1) need much longer timeouts (5-10 minutes)
         # Regular models use the configured timeout
         effective_timeout = config.timeout
         if is_reasoning:
-            effective_timeout = max(config.timeout, 600)  # At least 10 minutes for reasoning models
-            logger.info(f"Reasoning model detected ({config.model}), using extended timeout of {effective_timeout}s")
-        
+            # At least 10 minutes for reasoning models
+            effective_timeout = max(config.timeout, 600)
+            logger.info(
+                f"Reasoning model detected ({config.model}), "
+                f"using extended timeout of {effective_timeout}s"
+            )
+
         logger.debug(f"Initializing OpenAI client with timeout: {effective_timeout}s")
-        
+
         # Log API key presence (not the actual key)
         api_key_preview = config.api_key[:10] + "..." if len(config.api_key) > 10 else "***"
         logger.debug(f"API Key prefix: {api_key_preview}")
-        
-        self.client = OpenAI(
-            api_key=config.api_key,
-            timeout=effective_timeout,
-            max_retries=0
-        )
-        
-        logger.debug(f"OpenAI client initialized successfully")
+
+        self.client = OpenAI(api_key=config.api_key, timeout=effective_timeout, max_retries=0)
+
+        logger.debug("OpenAI client initialized successfully")
 
         # Initialize tokenizer for token counting
         try:
@@ -131,33 +131,36 @@ class OpenAIProvider(LLMProvider):
             params["temperature"] = kwargs.get("temperature", self.temperature)
             params["max_tokens"] = kwargs.get("max_tokens", self.max_tokens)
         else:
-            logger.debug(f"Skipping temperature and max_tokens for reasoning model: {self.model}")
+            logger.debug(
+                "Skipping temperature and max_tokens for reasoning model: " f"{self.model}"
+            )
 
         # Add optional parameters
         if "response_format" in kwargs:
             params["response_format"] = kwargs["response_format"]
 
         # Log the full request for debugging
-        logger.info(f"=== OpenAI API Request ===")
+        logger.info("=== OpenAI API Request ===")
         logger.info(f"Model: {self.model}")
         logger.info(f"Is reasoning model: {self._is_reasoning_model()}")
         logger.info(f"Messages count: {len(messages)}")
         logger.info(f"Request params keys: {list(params.keys())}")
         logger.info(f"Timeout: {self.timeout}s")
-        
+
         # Log message sizes
         for i, msg in enumerate(messages):
-            msg_len = len(msg.get('content', ''))
+            msg_len = len(msg.get("content", ""))
             logger.debug(f"Message {i} ({msg['role']}): {msg_len} characters")
-        
-        logger.info(f"Calling OpenAI API...")
+
+        logger.info("Calling OpenAI API...")
 
         try:
             import time
+
             start_time = time.time()
-            
+
             response = self.client.chat.completions.create(**params)
-            
+
             elapsed = time.time() - start_time
             logger.info(f"API call completed in {elapsed:.2f}s")
 
@@ -168,7 +171,7 @@ class OpenAIProvider(LLMProvider):
             # Count tokens used
             tokens_used = response.usage.total_tokens if response.usage else 0
 
-            logger.info(f"=== OpenAI API Response ===")
+            logger.info("=== OpenAI API Response ===")
             logger.info(f"Tokens used: {tokens_used}")
             logger.info(f"Finish reason: {finish_reason}")
             logger.info(f"Response length: {len(content) if content else 0} characters")
@@ -178,29 +181,30 @@ class OpenAIProvider(LLMProvider):
                 model=response.model,
                 tokens_used=tokens_used,
                 finish_reason=finish_reason,
-                raw_response=response.model_dump() if hasattr(response, "model_dump") else None,
+                raw_response=(response.model_dump() if hasattr(response, "model_dump") else None),
             )
 
         except Exception as e:
-            logger.error(f"=== OpenAI API Error ===")
+            logger.error("=== OpenAI API Error ===")
             logger.error(f"Error type: {type(e).__name__}")
             logger.error(f"Error message: {str(e)}")
-            
+
             # Log more details if available
-            if hasattr(e, 'response'):
-                logger.error(f"Response status: {getattr(e.response, 'status_code', 'N/A')}")
+            if hasattr(e, "response"):
+                logger.error(f"Response status: " f"{getattr(e.response, 'status_code', 'N/A')}")
                 logger.error(f"Response body: {getattr(e.response, 'text', 'N/A')}")
-            
-            if hasattr(e, 'body'):
+
+            if hasattr(e, "body"):
                 logger.error(f"Error body: {e.body}")
-                
-            if hasattr(e, 'code'):
+
+            if hasattr(e, "code"):
                 logger.error(f"Error code: {e.code}")
-            
+
             # Log the full exception details
             import traceback
+
             logger.error(f"Full traceback:\n{traceback.format_exc()}")
-            
+
             raise
 
     def count_tokens(self, text: str) -> int:

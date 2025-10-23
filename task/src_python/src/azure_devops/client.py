@@ -104,7 +104,8 @@ class AzureDevOpsClient:
 
         logger.info(
             f"PR context: {context['stats']['total_files']} files, "  # type: ignore[index]
-            f"+{context['stats']['additions']}/-{context['stats']['deletions']} lines, "  # type: ignore[index]
+            f"+{context['stats']['additions']}/"  # type: ignore[index]
+            f"-{context['stats']['deletions']} lines, "  # type: ignore[index]
             f"{context['stats']['existing_threads']} existing threads"  # type: ignore[index]
         )
 

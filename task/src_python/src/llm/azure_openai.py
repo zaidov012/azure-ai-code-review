@@ -1,6 +1,6 @@
 """Azure OpenAI provider implementation."""
 
-from typing import Optional, List, Any, Type
+from typing import Optional, List, Any
 
 try:
     from openai import AzureOpenAI

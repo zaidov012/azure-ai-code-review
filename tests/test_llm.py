@@ -90,6 +90,7 @@ Here are my comments:
         assert isinstance(json_str, str)
         # Parse to verify it's valid JSON
         import json
+
         result = json.loads(json_str)
         assert isinstance(result, list)
         assert len(result) == 1
@@ -104,6 +105,7 @@ Here are my comments:
         assert isinstance(json_str, str)
         # Parse to verify it's valid JSON
         import json
+
         result = json.loads(json_str)
         assert isinstance(result, list)
         assert len(result) == 1
@@ -315,10 +317,10 @@ class TestLLMReviewClient:
             client = LLMReviewClient(self.config)
 
             from src.azure_devops.models import User, GitRepository, PullRequestStatus
-            
+
             user = User(id="1", display_name="Test User", unique_name="test", email="test@test.com")
             repo = GitRepository(id="1", name="TestRepo", url="http://test", project_id="1")
-            
+
             pr = PullRequest(
                 pull_request_id=1,
                 title="Test PR",
@@ -331,8 +333,12 @@ class TestLLMReviewClient:
             )
 
             file_diffs = [
-                FileDiff(path="test1.py", change_type=FileDiffOperation.EDIT, additions=10, deletions=5),
-                FileDiff(path="test2.py", change_type=FileDiffOperation.ADD, additions=20, deletions=0),
+                FileDiff(
+                    path="test1.py", change_type=FileDiffOperation.EDIT, additions=10, deletions=5
+                ),
+                FileDiff(
+                    path="test2.py", change_type=FileDiffOperation.ADD, additions=20, deletions=0
+                ),
             ]
 
             file_contents = {
@@ -361,10 +367,10 @@ class TestLLMReviewClient:
             client = LLMReviewClient(self.config)
 
             from src.azure_devops.models import User, GitRepository, PullRequestStatus
-            
+
             user = User(id="1", display_name="Test User", unique_name="test", email="test@test.com")
             repo = GitRepository(id="1", name="TestRepo", url="http://test", project_id="1")
-            
+
             pr = PullRequest(
                 pull_request_id=1,
                 title="Test PR",
@@ -452,7 +458,9 @@ def greet(name):
                     assert len(comments) == 2
                     assert comments[0].line_number == 10
                     assert comments[0].severity == "major"  # "warning" is mapped to "major"
-                    assert comments[0].category == "code_quality"  # "style" is mapped to "code_quality"
+                    assert (
+                        comments[0].category == "code_quality"
+                    )  # "style" is mapped to "code_quality"
                     assert comments[1].line_number == 15
                     assert comments[1].severity == "critical"  # "error" is mapped to "critical"
                     assert comments[1].category == "bugs"  # "bug" is mapped to "bugs"

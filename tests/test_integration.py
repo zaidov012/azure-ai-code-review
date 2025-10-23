@@ -86,7 +86,9 @@ class TestPRReviewWorkflow:
                                 # Step 5: Review files
                                 all_comments = []
                                 for file_diff in reviewable:
-                                    content = azdo_client.pr_client.get_file_diff_content(123, file_diff.path)
+                                    content = azdo_client.pr_client.get_file_diff_content(
+                                        123, file_diff.path
+                                    )
                                     if content:
                                         comments = llm_client.review_file(
                                             file_diff=file_diff,
@@ -200,7 +202,9 @@ class TestPRReviewWorkflow:
                             # LLM error should propagate or be handled gracefully
                             with pytest.raises(Exception):
                                 for file_diff in changes[:1]:
-                                    content = azdo_client.pr_client.get_file_diff_content(123, file_diff.path)
+                                    content = azdo_client.pr_client.get_file_diff_content(
+                                        123, file_diff.path
+                                    )
                                     llm_client.review_file(
                                         file_diff=file_diff,
                                         file_content=content,
@@ -478,7 +482,9 @@ class TestPerformanceIntegration:
 
                         all_comments = []
                         for file_diff in many_files[:10]:  # Review first 10
-                            content = azdo_client.pr_client.get_file_diff_content(123, file_diff.path)
+                            content = azdo_client.pr_client.get_file_diff_content(
+                                123, file_diff.path
+                            )
                             comments = llm_client.review_file(
                                 file_diff=file_diff,
                                 file_content=content,

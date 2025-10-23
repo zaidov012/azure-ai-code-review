@@ -134,7 +134,8 @@ class Config:
 
         if not self.azure_devops.pat_token:
             errors.append(
-                "Azure DevOps PAT token is required (set in config or AZDO_PERSONAL_ACCESS_TOKEN env var)"
+                "Azure DevOps PAT token is required "
+                "(set in config or AZDO_PERSONAL_ACCESS_TOKEN env var)"
             )
 
         return errors

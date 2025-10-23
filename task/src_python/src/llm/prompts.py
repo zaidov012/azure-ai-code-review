@@ -18,9 +18,12 @@ class CodeReviewPrompts:
     """Collection of prompts for code review tasks."""
 
     # System message for code review
-    SYSTEM_MESSAGE = """You are an expert code reviewer with deep knowledge of software engineering best practices, security, performance optimization, and code quality.
+    SYSTEM_MESSAGE = """You are an expert code reviewer with deep knowledge \
+of software engineering best practices, security, performance optimization, \
+and code quality.
 
-Your task is to review code changes and provide constructive, actionable feedback. Focus on:
+Your task is to review code changes and provide constructive, actionable \
+feedback. Focus on:
 - Security vulnerabilities
 - Performance issues
 - Code quality and maintainability
