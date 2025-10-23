@@ -119,7 +119,7 @@ jobs:
     
     - name: Run integration tests
       run: |
-        python scripts/run_tests.py --markers integration --coverage
+        python scripts/run_tests.py --python --markers integration --coverage
       env:
         TESTING: 'true'
 
