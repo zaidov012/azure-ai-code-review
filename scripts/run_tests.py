@@ -41,7 +41,7 @@ def run_python_tests(args):
     print("🐍 Running Python Tests")
     print("=" * 80)
     
-    repo_root = Path(__file__).parent
+    repo_root = Path(__file__).parent.parent
     
     # Build pytest command
     cmd = [sys.executable, "-m", "pytest"]
@@ -84,7 +84,7 @@ def run_typescript_tests(args):
     print("📘 Running TypeScript Tests")
     print("=" * 80)
     
-    repo_root = Path(__file__).parent
+    repo_root = Path(__file__).parent.parent
     task_dir = repo_root / "task"
     
     if not (task_dir / "node_modules").exists():
@@ -114,7 +114,7 @@ def run_linters(args):
     print("🔍 Running Linters")
     print("=" * 80)
     
-    repo_root = Path(__file__).parent
+    repo_root = Path(__file__).parent.parent
     success = True
     
     # Run flake8
@@ -162,18 +162,19 @@ def check_dependencies():
     """Check if all required dependencies are installed."""
     print("\n📦 Checking dependencies...")
     
-    required_packages = [
-        "pytest",
-        "pytest-cov",
-        "pytest-mock",
-        "pyyaml",
-        "requests",
-    ]
+    # Map package names to their import names
+    required_packages = {
+        "pytest": "pytest",
+        "pytest-cov": "pytest_cov",
+        "pytest-mock": "pytest_mock",
+        "pyyaml": "yaml",  # pyyaml imports as 'yaml'
+        "requests": "requests",
+    }
     
     missing = []
-    for package in required_packages:
+    for package, import_name in required_packages.items():
         try:
-            __import__(package.replace("-", "_"))
+            __import__(import_name)
         except ImportError:
             missing.append(package)
     

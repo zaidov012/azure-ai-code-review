@@ -21,6 +21,7 @@ from src.azure_devops.models import (
 # Configuration Fixtures
 # ===========================
 
+
 @pytest.fixture
 def sample_llm_config():
     """Sample LLM configuration for testing."""
@@ -79,6 +80,7 @@ def sample_config(sample_llm_config, sample_azdo_config, sample_review_config):
 # Model Fixtures
 # ===========================
 
+
 @pytest.fixture
 def sample_user():
     """Sample user for testing."""
@@ -94,14 +96,14 @@ def sample_user():
 def sample_pull_request(sample_user):
     """Sample pull request for testing."""
     from src.azure_devops.models import GitRepository
-    
+
     repo = GitRepository(
         id="repo-123",
         name="TestRepo",
         url="https://dev.azure.com/test/repo",
         project_id="proj-123",
     )
-    
+
     return PullRequest(
         pull_request_id=123,
         title="Add new feature",
@@ -215,6 +217,7 @@ def sample_review_comments():
 # Mock API Response Fixtures
 # ===========================
 
+
 @pytest.fixture
 def mock_azdo_pr_response():
     """Mock Azure DevOps API response for a pull request."""
@@ -239,7 +242,7 @@ def mock_azdo_pr_response():
             "project": {
                 "id": "proj-123",
                 "name": "TestProject",
-            }
+            },
         },
         "reviewers": [],
         "labels": [],
@@ -255,13 +258,13 @@ def mock_azdo_changes_response():
                 "changeType": "edit",
                 "item": {
                     "path": "/src/main.py",
-                }
+                },
             },
             {
                 "changeType": "add",
                 "item": {
                     "path": "/src/utils.py",
-                }
+                },
             },
         ]
     }
@@ -292,11 +295,12 @@ def mock_llm_review_response():
 # Mock Client Fixtures
 # ===========================
 
+
 @pytest.fixture
 def mock_llm_provider():
     """Mock LLM provider for testing."""
     from src.llm.base import LLMProvider as BaseLLMProvider, LLMResponse
-    
+
     provider = Mock(spec=BaseLLMProvider)
     provider.generate_completion.return_value = LLMResponse(
         content="""```json
@@ -316,7 +320,7 @@ def mock_llm_provider():
     provider.count_tokens.return_value = 50
     provider.test_connection.return_value = True
     provider.optimize_prompt.side_effect = lambda x: x
-    
+
     return provider
 
 
@@ -332,6 +336,7 @@ def mock_requests_session():
 # Environment Setup
 # ===========================
 
+
 @pytest.fixture(autouse=True)
 def clean_env_vars(monkeypatch):
     """Clean environment variables before each test."""
@@ -344,7 +349,7 @@ def clean_env_vars(monkeypatch):
         "AZDO_REPOSITORY",
         "AZDO_PERSONAL_ACCESS_TOKEN",
     ]
-    
+
     for var in env_vars:
         monkeypatch.delenv(var, raising=False)
 
@@ -353,7 +358,7 @@ def clean_env_vars(monkeypatch):
 def temp_config_file(tmp_path, sample_config):
     """Create a temporary config file for testing."""
     import yaml
-    
+
     config_file = tmp_path / "test_config.yaml"
     config_dict = {
         "llm": {
@@ -376,10 +381,10 @@ def temp_config_file(tmp_path, sample_config):
         },
         "log_level": sample_config.log_level,
     }
-    
-    with open(config_file, 'w') as f:
+
+    with open(config_file, "w") as f:
         yaml.dump(config_dict, f)
-    
+
     return str(config_file)
 
 
@@ -387,14 +392,9 @@ def temp_config_file(tmp_path, sample_config):
 # Test Markers
 # ===========================
 
+
 def pytest_configure(config):
     """Register custom markers."""
-    config.addinivalue_line(
-        "markers", "integration: mark test as an integration test"
-    )
-    config.addinivalue_line(
-        "markers", "slow: mark test as slow running"
-    )
-    config.addinivalue_line(
-        "markers", "requires_api_key: mark test as requiring real API key"
-    )
+    config.addinivalue_line("markers", "integration: mark test as an integration test")
+    config.addinivalue_line("markers", "slow: mark test as slow running")
+    config.addinivalue_line("markers", "requires_api_key: mark test as requiring real API key")

@@ -139,11 +139,11 @@ def test_load_config_from_file():
         },
         "log_level": "DEBUG",
     }
-    
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False) as f:
+
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
         yaml.dump(config_data, f)
         temp_path = f.name
-    
+
     try:
         config = load_config(temp_path)
         assert config.llm.model == "gpt-4"
@@ -172,11 +172,11 @@ def test_load_config_validation_error():
             "repository": "TestRepo",
         },
     }
-    
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False) as f:
+
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
         yaml.dump(config_data, f)
         temp_path = f.name
-    
+
     try:
         with pytest.raises(ValueError, match="Configuration validation failed"):
             load_config(temp_path)
@@ -193,7 +193,7 @@ def test_load_config_from_env(monkeypatch):
     monkeypatch.setenv("AZDO_PROJECT", "TestProject")
     monkeypatch.setenv("AZDO_REPOSITORY", "TestRepo")
     monkeypatch.setenv("AZDO_PERSONAL_ACCESS_TOKEN", "test-pat")
-    
+
     config = load_config_from_env()
     assert config.llm.provider == LLMProvider.OPENAI
     assert config.llm.model == "gpt-4"

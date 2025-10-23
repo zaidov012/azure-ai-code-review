@@ -7,6 +7,7 @@ from dataclasses import dataclass
 @dataclass
 class PromptTemplate:
     """Template for generating prompts."""
+
     name: str
     system_message: str
     user_template: str
@@ -15,7 +16,7 @@ class PromptTemplate:
 
 class CodeReviewPrompts:
     """Collection of prompts for code review tasks."""
-    
+
     # System message for code review
     SYSTEM_MESSAGE = """You are an expert code reviewer with deep knowledge of software engineering best practices, security, performance optimization, and code quality.
 
@@ -28,7 +29,7 @@ Your task is to review code changes and provide constructive, actionable feedbac
 - Documentation
 
 Be constructive and helpful. Provide specific suggestions for improvement."""
-    
+
     # File review template
     FILE_REVIEW_TEMPLATE = """Review the following code changes from a pull request.
 
@@ -76,7 +77,7 @@ Format your response as a JSON array of review comments:
 If no issues are found, return an empty array: []
 
 Focus on providing actionable, specific feedback that helps improve the code."""
-    
+
     # Summary review template
     SUMMARY_TEMPLATE = """Based on the following review results, create a concise summary.
 
@@ -100,7 +101,7 @@ Please create a brief summary (3-5 sentences) highlighting:
 4. General recommendations
 
 Keep it constructive and helpful."""
-    
+
     # Quick review template (for large files)
     QUICK_REVIEW_TEMPLATE = """Perform a quick security and critical bug scan of this code.
 
@@ -130,7 +131,7 @@ Return only critical and major issues in JSON format:
 ```
 
 If no critical issues found, return: []"""
-    
+
     @classmethod
     def build_file_review_prompt(
         cls,
@@ -141,11 +142,11 @@ If no critical issues found, return: []"""
         pr_title: str = "",
         pr_description: str = "",
         diff_content: Optional[str] = None,
-        review_scope: Optional[List[str]] = None
+        review_scope: Optional[List[str]] = None,
     ) -> str:
         """
         Build a file review prompt.
-        
+
         Args:
             file_path: Path to the file
             file_content: Content of the file
@@ -155,7 +156,7 @@ If no critical issues found, return: []"""
             pr_description: Pull request description
             diff_content: Diff content (optional)
             review_scope: List of review aspects to focus on
-        
+
         Returns:
             Formatted prompt string
         """
@@ -168,10 +169,10 @@ If no critical issues found, return: []"""
 {diff_content}
 ```
 """
-        
+
         # Format review scope
         scope_str = ", ".join(review_scope) if review_scope else "all aspects"
-        
+
         return cls.FILE_REVIEW_TEMPLATE.format(
             pr_title=pr_title or "N/A",
             pr_description=pr_description or "N/A",
@@ -180,55 +181,42 @@ If no critical issues found, return: []"""
             change_type=change_type,
             file_content=file_content,
             diff_section=diff_section,
-            review_scope=scope_str
+            review_scope=scope_str,
         )
-    
+
     @classmethod
-    def build_quick_review_prompt(
-        cls,
-        file_path: str,
-        file_content: str,
-        language: str
-    ) -> str:
+    def build_quick_review_prompt(cls, file_path: str, file_content: str, language: str) -> str:
         """
         Build a quick review prompt for critical issues only.
-        
+
         Args:
             file_path: Path to the file
             file_content: Content of the file
             language: Programming language
-        
+
         Returns:
             Formatted prompt string
         """
         return cls.QUICK_REVIEW_TEMPLATE.format(
-            file_path=file_path,
-            file_content=file_content,
-            language=language or "unknown"
+            file_path=file_path, file_content=file_content, language=language or "unknown"
         )
-    
+
     @classmethod
-    def build_summary_prompt(
-        cls,
-        pr_title: str,
-        review_stats: Dict[str, Any]
-    ) -> str:
+    def build_summary_prompt(cls, pr_title: str, review_stats: Dict[str, Any]) -> str:
         """
         Build a summary prompt.
-        
+
         Args:
             pr_title: Pull request title
             review_stats: Dictionary with review statistics
-        
+
         Returns:
             Formatted prompt string
         """
         # Build category breakdown
         categories = review_stats.get("by_category", {})
-        category_breakdown = "\n".join(
-            f"  - {cat}: {count}" for cat, count in categories.items()
-        )
-        
+        category_breakdown = "\n".join(f"  - {cat}: {count}" for cat, count in categories.items())
+
         return cls.SUMMARY_TEMPLATE.format(
             pr_title=pr_title,
             total_files=review_stats.get("total_files", 0),
@@ -237,24 +225,26 @@ If no critical issues found, return: []"""
             major_count=review_stats.get("by_severity", {}).get("major", 0),
             minor_count=review_stats.get("by_severity", {}).get("minor", 0),
             suggestion_count=review_stats.get("by_severity", {}).get("suggestion", 0),
-            category_breakdown=category_breakdown or "  - None"
+            category_breakdown=category_breakdown or "  - None",
         )
-    
+
     @classmethod
     def get_system_message(cls, review_mode: str = "default") -> str:
         """
         Get system message based on review mode.
-        
+
         Args:
             review_mode: Review mode (default, quick, thorough)
-        
+
         Returns:
             System message string
         """
         if review_mode == "quick":
             return cls.SYSTEM_MESSAGE + "\n\nFocus on critical security and bug issues only."
         elif review_mode == "thorough":
-            return cls.SYSTEM_MESSAGE + "\n\nProvide detailed, comprehensive feedback on all aspects."
+            return (
+                cls.SYSTEM_MESSAGE + "\n\nProvide detailed, comprehensive feedback on all aspects."
+            )
         else:
             return cls.SYSTEM_MESSAGE
 
@@ -262,10 +252,10 @@ If no critical issues found, return: []"""
 def detect_language(file_path: str) -> str:
     """
     Detect programming language from file extension.
-    
+
     Args:
         file_path: Path to the file
-    
+
     Returns:
         Language name
     """
@@ -299,9 +289,9 @@ def detect_language(file_path: str) -> str:
         ".css": "css",
         ".md": "markdown",
     }
-    
+
     for ext, lang in extension_map.items():
         if file_path.endswith(ext):
             return lang
-    
+
     return "unknown"
