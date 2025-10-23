@@ -5,7 +5,7 @@ from unittest.mock import Mock, patch, MagicMock
 from typing import List
 
 from src.config.config import LLMConfig
-from src.azure_devops.models import ReviewComment, FileDiff, PullRequest, ChangeType
+from src.azure_devops.models import ReviewComment, FileDiff, PullRequest, FileDiffOperation
 from src.llm.base import LLMProvider, LLMResponse, LLMProviderFactory
 from src.llm.prompts import CodeReviewPrompts, detect_language
 from src.llm.parser import ResponseParser
@@ -86,7 +86,11 @@ Here are my comments:
 ]
 ```
 """
-        result = self.parser.extract_json(response)
+        json_str = self.parser.extract_json(response)
+        assert isinstance(json_str, str)
+        # Parse to verify it's valid JSON
+        import json
+        result = json.loads(json_str)
         assert isinstance(result, list)
         assert len(result) == 1
         assert result[0]["line_number"] == 10
@@ -96,7 +100,11 @@ Here are my comments:
         response = (
             '[{"line_number": 5, "severity": "error", "category": "bug", "content": "Null check"}]'
         )
-        result = self.parser.extract_json(response)
+        json_str = self.parser.extract_json(response)
+        assert isinstance(json_str, str)
+        # Parse to verify it's valid JSON
+        import json
+        result = json.loads(json_str)
         assert isinstance(result, list)
         assert len(result) == 1
 
@@ -125,30 +133,32 @@ Here are my comments:
         assert len(comments) == 2
         assert all(isinstance(c, ReviewComment) for c in comments)
         assert comments[0].file_path == "test.py"
-        assert comments[0].line == 10
-        assert comments[0].severity == "warning"
-        assert comments[1].severity == "error"
+        assert comments[0].line_number == 10
+        assert comments[0].severity == "major"  # "warning" is mapped to "major"
+        assert comments[0].category == "code_quality"  # "style" is mapped to "code_quality"
+        assert comments[1].severity == "critical"  # "error" is mapped to "critical"
+        assert comments[1].category == "bugs"  # "bug" is mapped to "bugs"
 
     def test_validate_comments(self):
         """Test comment validation."""
         comments = [
             ReviewComment(
                 file_path="test.py",
-                line=10,
+                line_number=10,
                 content="Valid comment",
                 severity="warning",
                 category="style",
             ),
             ReviewComment(
                 file_path="test.py",
-                line=-1,  # Invalid line number
+                line_number=-1,  # Invalid line number
                 content="Invalid line",
                 severity="warning",
                 category="style",
             ),
             ReviewComment(
                 file_path="test.py",
-                line=20,
+                line_number=20,
                 content="",  # Empty content
                 severity="warning",
                 category="style",
@@ -159,7 +169,7 @@ Here are my comments:
 
         # Only the first comment should remain
         assert len(validated) == 1
-        assert validated[0].line == 10
+        assert validated[0].line_number == 10
 
     def test_parse_invalid_json(self):
         """Test parsing invalid JSON."""
@@ -176,7 +186,7 @@ class TestLLMProviderFactory:
         """Test creating OpenAI provider."""
         config = LLMConfig(provider="openai", model="gpt-4", api_key="test-key")
 
-        with patch("src.llm.openai_provider.openai") as mock_openai:
+        with patch("src.llm.openai_provider.OpenAI") as mock_openai:
             provider = LLMProviderFactory.create(config)
             assert provider.__class__.__name__ == "OpenAIProvider"
 
@@ -190,7 +200,7 @@ class TestLLMProviderFactory:
             api_version="2023-05-15",
         )
 
-        with patch("src.llm.azure_openai.openai") as mock_openai:
+        with patch("src.llm.azure_openai.AzureOpenAI") as mock_openai:
             provider = LLMProviderFactory.create(config)
             assert provider.__class__.__name__ == "AzureOpenAIProvider"
 
@@ -198,7 +208,7 @@ class TestLLMProviderFactory:
         """Test creating Anthropic provider."""
         config = LLMConfig(provider="anthropic", model="claude-3-opus", api_key="test-key")
 
-        with patch("src.llm.anthropic_provider.anthropic") as mock_anthropic:
+        with patch("src.llm.anthropic_provider.Anthropic") as mock_anthropic:
             provider = LLMProviderFactory.create(config)
             assert provider.__class__.__name__ == "AnthropicProvider"
 
@@ -211,10 +221,9 @@ class TestLLMProviderFactory:
 
     def test_create_unknown_provider(self):
         """Test creating unknown provider raises error."""
-        config = LLMConfig(provider="unknown", model="test")
-
-        with pytest.raises(ValueError, match="Unknown LLM provider"):
-            LLMProviderFactory.create(config)
+        # LLMConfig itself validates the provider, so ValueError is raised during config creation
+        with pytest.raises(ValueError, match="is not a valid LLMProvider"):
+            config = LLMConfig(provider="unknown", model="test")
 
 
 # Test Review Client
@@ -240,6 +249,7 @@ class TestLLMReviewClient:
 ```""",
             tokens_used=100,
             model="gpt-4",
+            finish_reason="stop",
         )
         self.mock_provider.count_tokens.return_value = 50
         self.mock_provider.optimize_prompt.side_effect = lambda x: x
@@ -265,7 +275,7 @@ class TestLLMReviewClient:
             client = LLMReviewClient(self.config)
 
             file_diff = FileDiff(
-                path="test.py", change_type=ChangeType.EDIT, additions=10, deletions=5
+                path="test.py", change_type=FileDiffOperation.EDIT, additions=10, deletions=5
             )
 
             file_content = "def hello():\n    print('Hello')"
@@ -282,7 +292,7 @@ class TestLLMReviewClient:
             client = LLMReviewClient(self.config)
 
             file_diff = FileDiff(
-                path="test.py", change_type=ChangeType.EDIT, additions=10, deletions=5
+                path="test.py", change_type=FileDiffOperation.EDIT, additions=10, deletions=5
             )
 
             file_content = "def hello():\n    print('Hello')"
@@ -304,20 +314,25 @@ class TestLLMReviewClient:
         with patch.object(LLMProviderFactory, "create", return_value=self.mock_provider):
             client = LLMReviewClient(self.config)
 
+            from src.azure_devops.models import User, GitRepository, PullRequestStatus
+            
+            user = User(id="1", display_name="Test User", unique_name="test", email="test@test.com")
+            repo = GitRepository(id="1", name="TestRepo", url="http://test", project_id="1")
+            
             pr = PullRequest(
                 pull_request_id=1,
                 title="Test PR",
                 description="Test description",
                 source_branch="feature",
                 target_branch="main",
-                author="test-user",
-                created_date="2024-01-01T00:00:00Z",
-                status="active",
+                created_by=user,
+                repository=repo,
+                status=PullRequestStatus.ACTIVE,
             )
 
             file_diffs = [
-                FileDiff(path="test1.py", change_type=ChangeType.EDIT, additions=10, deletions=5),
-                FileDiff(path="test2.py", change_type=ChangeType.ADD, additions=20, deletions=0),
+                FileDiff(path="test1.py", change_type=FileDiffOperation.EDIT, additions=10, deletions=5),
+                FileDiff(path="test2.py", change_type=FileDiffOperation.ADD, additions=20, deletions=0),
             ]
 
             file_contents = {
@@ -339,26 +354,32 @@ class TestLLMReviewClient:
             content="Overall the code looks good with minor style issues.",
             tokens_used=50,
             model="gpt-4",
+            finish_reason="stop",
         )
 
         with patch.object(LLMProviderFactory, "create", return_value=self.mock_provider):
             client = LLMReviewClient(self.config)
 
+            from src.azure_devops.models import User, GitRepository, PullRequestStatus
+            
+            user = User(id="1", display_name="Test User", unique_name="test", email="test@test.com")
+            repo = GitRepository(id="1", name="TestRepo", url="http://test", project_id="1")
+            
             pr = PullRequest(
                 pull_request_id=1,
                 title="Test PR",
                 description="Test description",
                 source_branch="feature",
                 target_branch="main",
-                author="test-user",
-                created_date="2024-01-01T00:00:00Z",
-                status="active",
+                created_by=user,
+                repository=repo,
+                status=PullRequestStatus.ACTIVE,
             )
 
             comments = [
                 ReviewComment(
                     file_path="test.py",
-                    line=10,
+                    line_number=10,
                     content="Add type hints",
                     severity="warning",
                     category="style",
@@ -405,10 +426,10 @@ class TestLLMIntegration:
 ]
 ```"""
 
-        with patch("src.llm.openai_provider.openai"):
+        with patch("src.llm.openai_provider.OpenAI"):
             mock_provider = Mock(spec=LLMProvider)
             mock_provider.generate_completion.return_value = LLMResponse(
-                content=mock_response, tokens_used=150, model="gpt-4"
+                content=mock_response, tokens_used=150, model="gpt-4", finish_reason="stop"
             )
             mock_provider.count_tokens.return_value = 50
             mock_provider.optimize_prompt.side_effect = lambda x: x
@@ -416,7 +437,7 @@ class TestLLMIntegration:
             with patch.object(LLMProviderFactory, "create", return_value=mock_provider):
                 with LLMReviewClient(config) as client:
                     file_diff = FileDiff(
-                        path="app.py", change_type=ChangeType.EDIT, additions=10, deletions=2
+                        path="app.py", change_type=FileDiffOperation.EDIT, additions=10, deletions=2
                     )
 
                     content = """
@@ -429,10 +450,12 @@ def greet(name):
                     comments = client.review_file(file_diff, content)
 
                     assert len(comments) == 2
-                    assert comments[0].line == 10
-                    assert comments[0].severity == "warning"
-                    assert comments[1].line == 15
-                    assert comments[1].severity == "error"
+                    assert comments[0].line_number == 10
+                    assert comments[0].severity == "major"  # "warning" is mapped to "major"
+                    assert comments[0].category == "code_quality"  # "style" is mapped to "code_quality"
+                    assert comments[1].line_number == 15
+                    assert comments[1].severity == "critical"  # "error" is mapped to "critical"
+                    assert comments[1].category == "bugs"  # "bug" is mapped to "bugs"
 
 
 if __name__ == "__main__":

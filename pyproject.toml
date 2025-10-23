@@ -36,6 +36,10 @@ dependencies = [
     "colorlog>=6.8.0",
 ]
 
+[tool.setuptools.packages.find]
+where = ["task/src_python"]
+include = ["src*"]
+
 [project.optional-dependencies]
 dev = [
     "pytest>=8.0.0",

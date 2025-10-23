@@ -43,7 +43,7 @@ class TestPRReviewWorkflow:
                     mock_get_changes.return_value = sample_file_diffs
 
                     with patch(
-                        "src.azure_devops.pr_client.PullRequestClient.get_file_content"
+                        "src.azure_devops.pr_client.PullRequestClient.get_file_diff_content"
                     ) as mock_get_content:
                         mock_get_content.side_effect = lambda pr_id, path: sample_file_contents.get(
                             path, ""
@@ -86,13 +86,15 @@ class TestPRReviewWorkflow:
                                 # Step 5: Review files
                                 all_comments = []
                                 for file_diff in reviewable:
-                                    content = azdo_client.get_file_content(123, file_diff.path)
+                                    content = azdo_client.pr_client.get_file_diff_content(123, file_diff.path)
                                     if content:
                                         comments = llm_client.review_file(
                                             file_diff=file_diff,
                                             file_content=content,
-                                            pr_title=pr.title,
-                                            pr_description=pr.description,
+                                            pr_context={
+                                                "title": pr.title,
+                                                "description": pr.description,
+                                            },
                                         )
                                         all_comments.extend(comments)
 
@@ -182,7 +184,7 @@ class TestPRReviewWorkflow:
                     mock_get_changes.return_value = sample_file_diffs[:1]  # Just one file
 
                     with patch(
-                        "src.azure_devops.pr_client.PullRequestClient.get_file_content"
+                        "src.azure_devops.pr_client.PullRequestClient.get_file_diff_content"
                     ) as mock_get_content:
                         mock_get_content.return_value = sample_file_contents["/src/main.py"]
 
@@ -198,7 +200,7 @@ class TestPRReviewWorkflow:
                             # LLM error should propagate or be handled gracefully
                             with pytest.raises(Exception):
                                 for file_diff in changes[:1]:
-                                    content = azdo_client.get_file_content(123, file_diff.path)
+                                    content = azdo_client.pr_client.get_file_diff_content(123, file_diff.path)
                                     llm_client.review_file(
                                         file_diff=file_diff,
                                         file_content=content,
@@ -238,7 +240,7 @@ class TestPRReviewWorkflow:
                     mock_get_changes.return_value = [large_file_diff]
 
                     with patch(
-                        "src.azure_devops.pr_client.PullRequestClient.get_file_content"
+                        "src.azure_devops.pr_client.PullRequestClient.get_file_diff_content"
                     ) as mock_get_content:
                         mock_get_content.return_value = large_content
 
@@ -250,7 +252,6 @@ class TestPRReviewWorkflow:
                         # Filter should respect max file size
                         reviewable = azdo_client.filter_reviewable_files(
                             changes,
-                            max_diff_size_kb=100,
                         )
 
                         # Large file should be excluded
@@ -463,7 +464,7 @@ class TestPerformanceIntegration:
                 mock_get_pr.return_value = sample_pull_request
 
                 with patch(
-                    "src.azure_devops.pr_client.PullRequestClient.get_file_content"
+                    "src.azure_devops.pr_client.PullRequestClient.get_file_diff_content"
                 ) as mock_get_content:
                     mock_get_content.side_effect = lambda pr_id, path: file_contents.get(path, "")
 
@@ -477,7 +478,7 @@ class TestPerformanceIntegration:
 
                         all_comments = []
                         for file_diff in many_files[:10]:  # Review first 10
-                            content = azdo_client.get_file_content(123, file_diff.path)
+                            content = azdo_client.pr_client.get_file_diff_content(123, file_diff.path)
                             comments = llm_client.review_file(
                                 file_diff=file_diff,
                                 file_content=content,

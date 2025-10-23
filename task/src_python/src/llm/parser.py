@@ -29,7 +29,7 @@ class ResponseParser:
         matches = re.findall(json_block_pattern, text, re.DOTALL)
 
         if matches:
-            return str(matches[0])
+            return matches[0]
 
         # Try to find raw JSON array
         array_pattern = r"\[\s*\{.*?\}\s*\]"
@@ -37,7 +37,7 @@ class ResponseParser:
 
         if matches:
             # Return the longest match (most likely the complete array)
-            return str(max(matches, key=len))
+            return max(matches, key=len)
 
         # Check if the entire text is JSON
         text = text.strip()
@@ -129,13 +129,21 @@ class ResponseParser:
         severity = data.get("severity", "suggestion").lower()
         category = data.get("category", "code_quality").lower()
 
-        # Validate severity
+        # Validate and normalize severity
         valid_severities = {"critical", "major", "minor", "suggestion"}
+        severity_map = {
+            "error": "critical",
+            "warning": "major",
+            "info": "minor",
+            "hint": "suggestion",
+        }
+        # Map common names to valid values
+        severity = severity_map.get(severity, severity)
         if severity not in valid_severities:
             logger.warning(f"Unknown severity '{severity}', defaulting to 'suggestion'")
             severity = "suggestion"
 
-        # Validate category
+        # Validate and normalize category
         valid_categories = {
             "security",
             "performance",
@@ -145,6 +153,14 @@ class ResponseParser:
             "documentation",
             "general",
         }
+        category_map = {
+            "bug": "bugs",
+            "style": "code_quality",
+            "maintainability": "code_quality",
+            "readability": "code_quality",
+        }
+        # Map common names to valid values
+        category = category_map.get(category, category)
         if category not in valid_categories:
             logger.warning(f"Unknown category '{category}', defaulting to 'code_quality'")
             category = "code_quality"
