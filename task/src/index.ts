@@ -132,7 +132,8 @@ async function findPython(preferredVersion: string): Promise<string> {
 async function installDependencies(python: string): Promise<void> {
     tl.debug('Installing Python dependencies...');
     
-    const requirementsPath = path.join(__dirname, '..', '..', 'requirements.txt');
+    // Look for requirements.txt in task directory (packaged with VSIX)
+    const requirementsPath = path.join(__dirname, '..', 'requirements.txt');
     
     if (!fs.existsSync(requirementsPath)) {
         tl.warning(`requirements.txt not found at ${requirementsPath}. Skipping dependency installation.`);
@@ -199,11 +200,17 @@ function setEnvironmentVariables(inputs: TaskInputs): void {
 async function executeReview(python: string, inputs: TaskInputs, prContext: { prId: number }): Promise<void> {
     tl.debug('Executing AI code review...');
     
-    const scriptPath = path.join(__dirname, '..', '..', 'scripts', 'review_pr.py');
+    // Look for script in task directory (packaged with VSIX)
+    const scriptPath = path.join(__dirname, '..', 'scripts', 'review_pr.py');
     
     if (!fs.existsSync(scriptPath)) {
         throw new Error(`Review script not found at ${scriptPath}`);
     }
+    
+    // Set PYTHONPATH to include the src_python directory
+    const srcPythonPath = path.join(__dirname, '..', 'src_python');
+    const currentPythonPath = process.env.PYTHONPATH || '';
+    process.env.PYTHONPATH = currentPythonPath ? `${srcPythonPath}:${currentPythonPath}` : srcPythonPath;
     
     const pythonTool = tl.tool(python);
     pythonTool.arg(scriptPath);

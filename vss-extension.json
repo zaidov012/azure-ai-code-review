@@ -2,7 +2,7 @@
   "manifestVersion": 1,
   "id": "ai-code-review-extension",
   "name": "AI Code Review",
-  "version": "1.0.4",
+  "version": "1.0.6",
   "publisher": "AsifZaidov",
   "targets": [
     {
@@ -58,21 +58,6 @@
   "files": [
     {
       "path": "task"
-    },
-    {
-      "path": "src"
-    },
-    {
-      "path": "scripts"
-    },
-    {
-      "path": "pipelines"
-    },
-    {
-      "path": "requirements.txt"
-    },
-    {
-      "path": "config.example.yaml"
     }
   ],
   "contributions": [

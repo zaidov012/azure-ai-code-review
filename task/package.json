@@ -1,6 +1,6 @@
 {
   "name": "ai-code-review-task",
-  "version": "1.0.0",
+  "version": "1.0.6",
   "description": "Azure Pipelines task for AI-powered code review",
   "main": "dist/index.js",
   "scripts": {
