@@ -7,6 +7,7 @@
     "build": "tsc",
     "watch": "tsc --watch",
     "test": "jest",
+    "test:coverage": "jest --coverage",
     "package": "npm run build && node scripts/package-task.js",
     "clean": "rimraf dist"
   },

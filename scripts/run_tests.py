@@ -17,12 +17,16 @@ def run_command(cmd, cwd=None, env=None):
     print(f"\n▶ Running: {' '.join(cmd)}")
     print("=" * 80)
     
+    # On Windows, use shell=True for npm/node commands to find them in PATH
+    use_shell = sys.platform == "win32" and cmd[0] in ["npm", "node", "npx"]
+    
     result = subprocess.run(
         cmd,
         cwd=cwd,
         env=env or os.environ.copy(),
         capture_output=False,
-        text=True
+        text=True,
+        shell=use_shell
     )
     
     print("=" * 80)
@@ -86,6 +90,25 @@ def run_typescript_tests(args):
     
     repo_root = Path(__file__).parent.parent
     task_dir = repo_root / "task"
+    
+    # Check if npm is available
+    try:
+        npm_check = subprocess.run(
+            ["npm", "--version"],
+            capture_output=True,
+            text=True,
+            shell=(sys.platform == "win32")
+        )
+        if npm_check.returncode != 0:
+            print("❌ npm is not installed or not available in PATH")
+            print("   Please install Node.js and npm to run TypeScript tests")
+            print("   Download from: https://nodejs.org/")
+            return False
+    except FileNotFoundError:
+        print("❌ npm is not installed or not available in PATH")
+        print("   Please install Node.js and npm to run TypeScript tests")
+        print("   Download from: https://nodejs.org/")
+        return False
     
     if not (task_dir / "node_modules").exists():
         print("\n⚠️  Node modules not found. Installing dependencies...")

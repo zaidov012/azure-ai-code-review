@@ -149,3 +149,11 @@ Thumbs.db
 # Node modules
 node_modules/
 task/node_modules/
+
+# Coverage directory
+coverage/
+.coverage/
+task/coverage/
+
+# Temporary files
+task/.taskkey
