@@ -7,7 +7,7 @@ try:
     import tiktoken  # type: ignore[import-not-found]
 except ImportError:
     OpenAI = None  # type: ignore[assignment,misc]
-    tiktoken = None
+    tiktoken = None  # type: ignore[assignment]
 
 from ..config.config import LLMConfig
 from ..utils.logger import setup_logger
@@ -159,7 +159,7 @@ class OpenAIProvider(LLMProvider):
 
             start_time = time.time()
 
-            response = self.client.chat.completions.create(**params)
+            response = self.client.chat.completions.create(**params)  # type: ignore[call-overload]
 
             elapsed = time.time() - start_time
             logger.info(f"API call completed in {elapsed:.2f}s")
@@ -191,14 +191,16 @@ class OpenAIProvider(LLMProvider):
 
             # Log more details if available
             if hasattr(e, "response"):
-                logger.error(f"Response status: " f"{getattr(e.response, 'status_code', 'N/A')}")
-                logger.error(f"Response body: {getattr(e.response, 'text', 'N/A')}")
+                response = getattr(e, "response", None)
+                if response:
+                    logger.error(f"Response status: {getattr(response, 'status_code', 'N/A')}")
+                    logger.error(f"Response body: {getattr(response, 'text', 'N/A')}")
 
             if hasattr(e, "body"):
-                logger.error(f"Error body: {e.body}")
+                logger.error(f"Error body: {getattr(e, 'body', 'N/A')}")
 
             if hasattr(e, "code"):
-                logger.error(f"Error code: {e.code}")
+                logger.error(f"Error code: {getattr(e, 'code', 'N/A')}")
 
             # Log the full exception details
             import traceback

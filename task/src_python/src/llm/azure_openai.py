@@ -7,7 +7,7 @@ try:
     import tiktoken  # type: ignore[import-not-found]
 except ImportError:
     AzureOpenAI = None  # type: ignore[assignment,misc]
-    tiktoken = None
+    tiktoken = None  # type: ignore[assignment]
 
 from ..config.config import LLMConfig
 from ..utils.logger import setup_logger
