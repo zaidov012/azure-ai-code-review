@@ -166,7 +166,9 @@ def get_reviewable_files(
     source_dir = Path(os.environ.get('BUILD_SOURCESDIRECTORY', os.getcwd()))
     
     for file_diff in reviewable_files:
-        file_path = source_dir / file_diff.path
+        # Normalize path - remove leading slash if present
+        normalized_path = file_diff.path.lstrip('/')
+        file_path = source_dir / normalized_path
         
         if file_path.exists():
             try:
@@ -176,7 +178,7 @@ def get_reviewable_files(
             except Exception as e:
                 logger.warning(f"Could not read {file_diff.path}: {e}")
         else:
-            logger.warning(f"File not found in working directory: {file_diff.path}")
+            logger.warning(f"File not found in working directory: {file_path}")
     
     logger.info(f"Loaded content for {len(file_contents)} files")
     
