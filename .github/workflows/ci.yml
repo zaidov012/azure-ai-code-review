@@ -46,6 +46,7 @@ jobs:
     
     - name: Run type checking
       run: |
+        cd task
         python -m mypy ./ --ignore-missing-imports
     
     - name: Run unit tests
