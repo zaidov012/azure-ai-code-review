@@ -234,5 +234,5 @@ MIT License - See [LICENSE](LICENSE) file for details.
 
 **Made with ❤️ for better code reviews**
 
-**Version**: 1.1.0 | **Status**: Production Ready ✅
+**Version**: 2.0.0 | **Status**: Production Ready ✅
 
